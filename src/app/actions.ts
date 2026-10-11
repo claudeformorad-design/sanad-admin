@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { changePassword, checkSetupCode, isSetUp, login, logout, requireAdmin, setupPassword } from "@/lib/auth";
+import { changePassword, checkSetupCode, isSetUp, login, logout, requireAdmin, setupCodeConfigured, setupPassword } from "@/lib/auth";
 import { createHotel, createNotice, deleteHotel, deleteNotice, getHotel, resetActivation, updateHotel } from "@/lib/data";
 import { issueLicense } from "@/lib/license";
 
@@ -15,6 +15,7 @@ const list = (f: FormData, k: string) => f.getAll(k).map(String);
 /** فحص كود الإعداد قبل خطوة كلمة المرور (لا يستهلكه) */
 export async function checkSetupCodeAction(code: string): Promise<{ ok: true } | { ok: false; error: string }> {
   if (await isSetUp()) return { ok: false, error: "اللوحة مُعدّة مسبقًا، ادخل بكلمة المرور" };
+  if (!setupCodeConfigured()) return { ok: false, error: "كود الإعداد غير مضبوط في إعدادات الموقع على Netlify (المتغير ADMIN_SETUP_CODE)" };
   const r = await checkSetupCode(String(code ?? ""));
   return r ? { ok: true } : { ok: false, error: "كود الإعداد غير صحيح" };
 }

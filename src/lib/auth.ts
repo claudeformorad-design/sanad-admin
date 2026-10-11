@@ -23,16 +23,27 @@ async function admin(): Promise<Admin> {
 
 export const isSetUp = async () => (await admin()).password_hash !== null;
 
+/**
+ * توحيد كتابة الكود قبل المقارنة: حروف كبيرة، بلا مسافات أو شرطات، والأرقام العربية تُقرأ لاتينية.
+ * فيُقبل الكود كيفما كُتب (4a2h jedc 457d أو ٤A2H-JEDC-٤٥٧D).
+ */
+const normalizeCode = (s: string) =>
+  s.replace(/[\u0660-\u0669]/g, (d) => String(d.charCodeAt(0) - 0x0660))
+    .replace(/[\u06F0-\u06F9]/g, (d) => String(d.charCodeAt(0) - 0x06f0))
+    .toUpperCase().replace(/[^A-Z0-9]/g, "");
+
+/** هل ضُبط كود الإعداد في إعدادات الموقع؟ بدونه لا يمكن الإعداد الأول أصلًا */
+export const setupCodeConfigured = () => normalizeCode(process.env.ADMIN_SETUP_CODE ?? "").length >= 6;
+
 /** هل الكود صحيح؟ بمقارنة ثابتة الزمن */
 export async function checkSetupCode(code: string): Promise<boolean> {
-  const expected = process.env.ADMIN_SETUP_CODE ?? "";
-  return !!expected && safeEqual(code.trim().toUpperCase(), expected.toUpperCase());
+  if (!setupCodeConfigured()) return false;
+  return safeEqual(normalizeCode(code), normalizeCode(process.env.ADMIN_SETUP_CODE ?? ""));
 }
 
 export async function setupPassword(code: string, password: string): Promise<"ok" | "already" | "bad_code" | "weak"> {
-  const expected = process.env.ADMIN_SETUP_CODE ?? "";
   if (await isSetUp()) return "already";
-  if (!expected || !(await checkSetupCode(code))) return "bad_code";
+  if (!(await checkSetupCode(code))) return "bad_code";
   if (!strongPassword(password)) return "weak";
   await update<Admin>("admin", EMPTY, (v) => ({ ...v, password_hash: hashPassword(password) }));
   await startSession();
