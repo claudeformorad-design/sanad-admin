@@ -12,6 +12,10 @@ const DIR = path.resolve(/*turbopackIgnore: true*/ process.env.LOCAL_DATA_DIR ||
 
 type Backend = { get(key: string): Promise<string | null>; set(key: string, value: string): Promise<void> };
 
+/**
+ * مخزن Netlify Blobs إن وُجد سياقه. السياق في دوال Netlify الحديثة لا يكون دائمًا في process.env
+ * (قد يكون في globalThis)، فلا يُحكم بالمتغيرات بل يُجرَّب المخزن نفسه: getStore يرفض فورًا خارج Netlify.
+ */
 async function netlify(): Promise<Backend | null> {
   try {
     const { getStore } = await import("@netlify/blobs");
@@ -24,6 +28,10 @@ async function netlify(): Promise<Backend | null> {
     return null;
   }
 }
+
+/** هل نعمل داخل خوادم Netlify (حيث نظام الملفات للقراءة فقط وما يُكتب فيه يضيع)؟ */
+const onNetlify = () =>
+  Boolean((globalThis as { Netlify?: unknown }).Netlify || process.env.NETLIFY || process.env.SITE_ID || process.env.AWS_LAMBDA_FUNCTION_NAME);
 
 const file: Backend = {
   get: async (key) => {
@@ -38,7 +46,13 @@ const file: Backend = {
   },
 };
 
-const backend = async () => (process.env.NETLIFY || process.env.NETLIFY_BLOBS_CONTEXT ? ((await netlify()) ?? file) : file);
+async function backend(): Promise<Backend> {
+  const blobs = await netlify();
+  if (blobs) return blobs;
+  // على Netlify بلا مخزن: خطأ واضح بدل كتابة تفشل أو تضيع بصمت
+  if (onNetlify()) throw new Error("Netlify Blobs is not available for this site");
+  return file;
+}
 
 export async function readJson<T>(key: string, fallback: T): Promise<T> {
   const raw = await (await backend()).get(key);
