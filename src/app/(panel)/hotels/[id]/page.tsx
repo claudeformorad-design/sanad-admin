@@ -23,7 +23,7 @@ export default async function HotelPage({ params, searchParams }: { params: Prom
   const sp = await searchParams;
   const h = await getHotel(id);
   if (!h) notFound();
-  const share = `مرحبًا، هذا كود ربط نظام نزيل لـ ${h.name}:\n${h.code}\nاكتبه في شاشة التفعيل أول مرة تفتح النظام.`;
+  const share = `مرحبًا، هذا كود ربط نظام هوتيلنا لـ ${h.name}:\n${h.code}\nاكتبه في شاشة التفعيل أول مرة تفتح النظام.`;
   return (
     <Shell active="/">
       <PageTitle title={h.name} actions={h.status === "active"

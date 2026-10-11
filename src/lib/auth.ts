@@ -3,9 +3,10 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { hashPassword, hmac, random, safeEqual, verifyPassword } from "./crypto";
 import { readJson, update } from "./store";
+import { strongPassword } from "./password";
 
 /**
- * دخول صاحب النظام وحده بكلمة مرور. أول مرة يضعها بكود إعداد لمرة واحدة (متغير ADMIN_SETUP_CODE في Netlify)،
+ * دخول صاحب النظام وحده بكلمة مرور قوية (10 أحرف فأكثر فيها حرف ورقم ورمز). أول مرة يضعها بكود إعداد لمرة واحدة (متغير ADMIN_SETUP_CODE في Netlify)،
  * وبعدها لا يُقبل الكود. الجلسة كوكي موقّع لا يقرؤه JavaScript، مدتها 12 ساعة.
  * بعد 8 محاولات خاطئة خلال 15 دقيقة يُغلق الدخول 15 دقيقة.
  */
@@ -22,11 +23,17 @@ async function admin(): Promise<Admin> {
 
 export const isSetUp = async () => (await admin()).password_hash !== null;
 
+/** هل الكود صحيح؟ بمقارنة ثابتة الزمن */
+export async function checkSetupCode(code: string): Promise<boolean> {
+  const expected = process.env.ADMIN_SETUP_CODE ?? "";
+  return !!expected && safeEqual(code.trim().toUpperCase(), expected.toUpperCase());
+}
+
 export async function setupPassword(code: string, password: string): Promise<"ok" | "already" | "bad_code" | "weak"> {
   const expected = process.env.ADMIN_SETUP_CODE ?? "";
   if (await isSetUp()) return "already";
-  if (!expected || !safeEqual(code.trim(), expected)) return "bad_code";
-  if (password.length < 10) return "weak";
+  if (!expected || !(await checkSetupCode(code))) return "bad_code";
+  if (!strongPassword(password)) return "weak";
   await update<Admin>("admin", EMPTY, (v) => ({ ...v, password_hash: hashPassword(password) }));
   await startSession();
   return "ok";
@@ -52,7 +59,7 @@ export async function login(password: string): Promise<"ok" | "bad" | "locked"> 
 export async function changePassword(current: string, next: string): Promise<"ok" | "bad" | "weak"> {
   const a = await admin();
   if (!a.password_hash || !verifyPassword(current, a.password_hash)) return "bad";
-  if (next.length < 10) return "weak";
+  if (!strongPassword(next)) return "weak";
   // سر جلسات جديد: كل الأجهزة المسجّلة تخرج
   await update<Admin>("admin", EMPTY, (v) => ({ ...v, password_hash: hashPassword(next), session_secret: random(32) }));
   await startSession();

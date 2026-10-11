@@ -15,7 +15,7 @@ const thmanyah = localFont({
   display: "swap",
 });
 
-export const metadata: Metadata = { title: { default: "لوحة نزيل", template: "%s، لوحة نزيل" }, robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: { default: "لوحة هوتيلنا", template: "%s، لوحة هوتيلنا" }, robots: { index: false, follow: false } };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

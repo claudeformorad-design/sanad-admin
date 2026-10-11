@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Bell, Building2, LogOut, Settings } from "lucide-react";
 import { logoutAction } from "@/app/actions";
+import { BrandMark } from "@/components/brand-mark";
 
 const NAV = [
   { href: "/", label: "الفنادق", icon: Building2 },
@@ -13,7 +14,7 @@ export function Shell({ active, children }: { active: string; children: React.Re
     <div className="min-h-screen">
       <header className="border-b border-line bg-white">
         <div className="mx-auto flex max-w-6xl items-center gap-6 px-6 py-3">
-          <span className="text-[19px] font-bold text-ink">لوحة نزيل</span>
+          <span className="flex items-center gap-2.5"><BrandMark className="size-8" /><span className="text-[19px] font-bold text-ink">لوحة هوتيلنا</span></span>
           <nav className="flex flex-1 items-center gap-1">
             {NAV.map((n) => (
               <Link key={n.href} href={n.href}

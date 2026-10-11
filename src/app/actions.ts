@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { changePassword, login, logout, requireAdmin, setupPassword } from "@/lib/auth";
+import { changePassword, checkSetupCode, isSetUp, login, logout, requireAdmin, setupPassword } from "@/lib/auth";
 import { createHotel, createNotice, deleteHotel, deleteNotice, getHotel, resetActivation, updateHotel } from "@/lib/data";
 import { issueLicense } from "@/lib/license";
 
@@ -12,12 +12,19 @@ export type FormState = { error?: string; ok?: string; key?: string } | null;
 const str = (f: FormData, k: string) => String(f.get(k) ?? "").trim();
 const list = (f: FormData, k: string) => f.getAll(k).map(String);
 
+/** فحص كود الإعداد قبل خطوة كلمة المرور (لا يستهلكه) */
+export async function checkSetupCodeAction(code: string): Promise<{ ok: true } | { ok: false; error: string }> {
+  if (await isSetUp()) return { ok: false, error: "اللوحة مُعدّة مسبقًا، ادخل بكلمة المرور" };
+  const r = await checkSetupCode(String(code ?? ""));
+  return r ? { ok: true } : { ok: false, error: "كود الإعداد غير صحيح" };
+}
+
 export async function setupAction(_: FormState, f: FormData): Promise<FormState> {
   if (str(f, "password") !== str(f, "confirm")) return { error: "كلمتا المرور غير متطابقتين" };
   const r = await setupPassword(str(f, "code"), str(f, "password"));
   if (r === "already") redirect("/login");
   if (r === "bad_code") return { error: "كود الإعداد غير صحيح" };
-  if (r === "weak") return { error: "كلمة المرور 10 أحرف على الأقل" };
+  if (r === "weak") return { error: "كلمة المرور لازم 10 أحرف أو أكثر، وفيها حرف ورقم ورمز" };
   redirect("/");
 }
 
@@ -38,7 +45,7 @@ export async function changePasswordAction(_: FormState, f: FormData): Promise<F
   if (str(f, "next") !== str(f, "confirm")) return { error: "كلمتا المرور غير متطابقتين" };
   const r = await changePassword(str(f, "current"), str(f, "next"));
   if (r === "bad") return { error: "كلمة المرور الحالية غير صحيحة" };
-  if (r === "weak") return { error: "كلمة المرور 10 أحرف على الأقل" };
+  if (r === "weak") return { error: "كلمة المرور لازم 10 أحرف أو أكثر، وفيها حرف ورقم ورمز" };
   return { ok: "تغيّرت كلمة المرور، وخرجت كل الأجهزة الأخرى" };
 }
 
