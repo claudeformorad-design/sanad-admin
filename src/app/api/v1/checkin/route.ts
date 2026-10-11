@@ -19,7 +19,11 @@ export async function POST(request: Request) {
   const ts = request.headers.get("x-timestamp") ?? "";
   const sig = request.headers.get("x-signature") ?? "";
   const raw = await request.text();
-  if (!id || !ts || !sig || Math.abs(Date.now() - Number(ts)) > 10 * 60_000) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  if (!id || !ts || !sig) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  // ساعة جهاز الفندق قد تكون خاطئة (أو منطقته الزمنية): يُعاد وقت اللوحة ليعيد النظام التوقيع به مرة واحدة
+  if (!Number.isFinite(Number(ts)) || Math.abs(Date.now() - Number(ts)) > 10 * 60_000) {
+    return NextResponse.json({ error: "clock", now: Date.now() }, { status: 401 });
+  }
   const hotel = await findByInstance(id);
   // السر لا يُرسل أبدًا: التوقيع وحده يثبت أن الطلب من النظام المربوط
   if (!hotel?.instance || !safeEqual(sig, hmac(hotel.instance.secret, `${ts}.${raw}`))) {

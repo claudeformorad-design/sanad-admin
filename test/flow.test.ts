@@ -61,7 +61,13 @@ describe("panel flow", () => {
 
     // توقيع خاطئ، أو طلب قديم، يُرفض
     expect((await checkinRoute.POST(signed("wrong-secret", j.instance_id, {}))).status).toBe(401);
-    expect((await checkinRoute.POST(signed(j.secret, j.instance_id, {}, String(Date.now() - 20 * 60_000)))).status).toBe(401);
+    const skewed = await checkinRoute.POST(signed(j.secret, j.instance_id, {}, String(Date.now() - 3 * 3600_000)));
+    expect(skewed.status).toBe(401);
+    // ساعة الجهاز خاطئة: اللوحة تعيد وقتها، والتوقيع به يُقبل
+    const clock = await skewed.json() as { error: string; now: number };
+    expect(clock.error).toBe("clock");
+    expect(Math.abs(clock.now - Date.now())).toBeLessThan(5000);
+    expect((await checkinRoute.POST(signed(j.secret, j.instance_id, {}, String(clock.now)))).status).toBe(200);
 
     // الإيقاف يصل في الترخيص
     await updateHotel(h.id, { status: "suspended" });
