@@ -1,0 +1,7 @@
+# لوحة نزيل على Netlify. البيانات والمفاتيح في مخزن Netlify Blobs الخاص بالموقع، لا في المستودع.
+[build]
+  command = "bun run build"
+
+[build.environment]
+  NODE_VERSION = "22"
+  NEXT_TELEMETRY_DISABLED = "1"
