@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { passwordChecks, passwordScore } from "@/lib/password";
-import { checkSetupCodeAction, setupAction } from "@/app/actions";
+import { checkResetCodeAction, checkSetupCodeAction, resetAction, setupAction } from "@/app/actions";
 
 const STRENGTH = [
   { label: "ضعيفة جدًا", bar: "bg-urgent" },
@@ -19,8 +19,14 @@ const STRENGTH = [
   { label: "قوية", bar: "bg-success" },
 ];
 
-/** الإعداد الأول بخطوتين: كود الإعداد (لمرة واحدة)، ثم كلمة مرور قوية */
-export function SetupWizard() {
+const MODES = {
+  setup: { codeLabel: "كود الإعداد", intro: "اكتب كود الإعداد الذي وصلك. يُستخدم مرة واحدة فقط، ولا يُقبل بعد إنشاء كلمة المرور.", submit: "إنشاء كلمة المرور والدخول", check: checkSetupCodeAction, save: setupAction },
+  reset: { codeLabel: "كود الاستعادة", intro: "اكتب كود الاستعادة الذي وصلك، ثم اختر كلمة مرور جديدة. الكود يعمل مرة واحدة، وفنادقك تبقى كما هي.", submit: "حفظ كلمة المرور والدخول", check: checkResetCodeAction, save: resetAction },
+} as const;
+
+/** خطوتان: كود (الإعداد الأول أو الاستعادة)، ثم كلمة مرور قوية */
+export function SetupWizard({ mode = "setup" }: { mode?: keyof typeof MODES }) {
+  const m = MODES[mode];
   const [step, setStep] = useState<1 | 2>(1);
   const [code, setCode] = useState("");
   const [codeError, setCodeError] = useState<string | null>(null);
@@ -28,7 +34,7 @@ export function SetupWizard() {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [show, setShow] = useState(false);
-  const [state, submit] = useActionState(setupAction, null);
+  const [state, submit] = useActionState(m.save, null);
   const checks = passwordChecks(password);
   const score = passwordScore(password);
   const strong = checks.every((c) => c.ok);
@@ -37,7 +43,7 @@ export function SetupWizard() {
   return (
     <div className="space-y-6">
       <ol className="flex items-center gap-3" aria-label="الخطوات">
-        {[{ n: 1, label: "كود الإعداد", icon: KeyRound }, { n: 2, label: "كلمة المرور", icon: LockKeyhole }].map((s, i) => (
+        {[{ n: 1, label: m.codeLabel, icon: KeyRound }, { n: 2, label: "كلمة المرور", icon: LockKeyhole }].map((s, i) => (
           <li key={s.n} className="flex flex-1 items-center gap-3">
             <span className={cn("flex size-9 shrink-0 items-center justify-center rounded-full text-[15px] font-semibold transition-colors",
               step > s.n ? "bg-success text-white" : step === s.n ? "bg-ink text-white" : "bg-subtle text-slate-500")}>
@@ -53,14 +59,14 @@ export function SetupWizard() {
         <form className="space-y-4" onSubmit={async (e) => {
           e.preventDefault();
           setChecking(true); setCodeError(null);
-          const r = await checkSetupCodeAction(code).catch(() => ({ ok: false as const, error: "تعذر التحقق، حاول مرة أخرى" }));
+          const r = await m.check(code).catch(() => ({ ok: false as const, error: "تعذر التحقق، حاول مرة أخرى" }));
           setChecking(false);
           if (r.ok) setStep(2); else setCodeError(r.error);
         }}>
-          <p className="text-[15.5px] leading-relaxed text-slate-600">اكتب كود الإعداد الذي وصلك. يُستخدم مرة واحدة فقط، ولا يُقبل بعد إنشاء كلمة المرور.</p>
+          <p className="text-[15.5px] leading-relaxed text-slate-600">{m.intro}</p>
           {codeError && <Alert variant="destructive">{codeError}</Alert>}
           <div className="space-y-1.5">
-            <Label htmlFor="code">كود الإعداد</Label>
+            <Label htmlFor="code">{m.codeLabel}</Label>
             <Input id="code" dir="ltr" value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} autoComplete="one-time-code" autoFocus
               placeholder="XXXX-XXXX-XXXX" className="text-center text-[20px] tracking-[0.2em]" />
           </div>
@@ -101,7 +107,7 @@ export function SetupWizard() {
             <Input id="confirm" name="confirm" type={show ? "text" : "password"} dir="ltr" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} />
             {confirm && !match && <p className="text-[14px] text-urgent">غير مطابقة</p>}
           </div>
-          <Submit disabled={!strong || !match} />
+          <Submit label={m.submit} disabled={!strong || !match} />
           <button type="button" className="w-full text-center text-[14.5px] text-slate-500 hover:text-ink" onClick={() => setStep(1)}>رجوع للكود</button>
         </form>
       )}
@@ -109,7 +115,7 @@ export function SetupWizard() {
   );
 }
 
-function Submit({ disabled }: { disabled: boolean }) {
+function Submit({ label, disabled }: { label: string; disabled: boolean }) {
   const { pending } = useFormStatus();
-  return <Button type="submit" className="w-full" loading={pending} disabled={disabled}>إنشاء كلمة المرور والدخول</Button>;
+  return <Button type="submit" className="w-full" loading={pending} disabled={disabled}>{label}</Button>;
 }

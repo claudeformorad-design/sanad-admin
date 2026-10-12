@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { isSetUp, isSignedIn } from "@/lib/auth";
 import { loginAction } from "@/app/actions";
@@ -17,6 +18,7 @@ export default async function LoginPage() {
       <ActionForm action={loginAction} submit="دخول">
         <div className="space-y-1.5"><Label htmlFor="password">كلمة المرور</Label><Input id="password" name="password" type="password" dir="ltr" autoComplete="current-password" autoFocus required /></div>
       </ActionForm>
+      <Link href="/reset" className="mt-4 block text-center text-[15px] text-slate-500 hover:text-ink">نسيت كلمة المرور؟</Link>
     </AuthShell>
   );
 }

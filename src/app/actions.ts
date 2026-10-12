@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { changePassword, checkSetupCode, isSetUp, login, logout, requireAdmin, setupCodeConfigured, setupPassword } from "@/lib/auth";
+import { changePassword, checkResetCode, checkSetupCode, isSetUp, login, logout, requireAdmin, resetPassword, setupCodeConfigured, setupPassword } from "@/lib/auth";
 import { createHotel, createNotice, deleteHotel, deleteNotice, resetActivation, updateHotel } from "@/lib/data";
 
 export type FormState = { error?: string; ok?: string } | null;
@@ -25,6 +25,28 @@ export async function setupAction(_: FormState, f: FormData): Promise<FormState>
   if (r === "already") redirect("/login");
   if (r === "bad_code") return { error: "كود الإعداد غير صحيح" };
   if (r === "weak") return { error: "كلمة المرور لازم 10 أحرف أو أكثر، وفيها حرف ورقم ورمز" };
+  redirect("/");
+}
+
+const RESET_ERRORS: Record<string, string> = {
+  bad: "كود الاستعادة غير صحيح",
+  used: "هذا الكود استُخدم من قبل. اطلب كودًا جديدًا",
+  locked: "محاولات كثيرة خاطئة، حاول بعد ربع ساعة",
+  off: "الاستعادة غير مفعّلة: كود الاستعادة غير مضبوط في إعدادات الموقع على Netlify (المتغير ADMIN_RESET_CODE)",
+  weak: "كلمة المرور لازم 10 أحرف أو أكثر، وفيها حرف ورقم ورمز",
+};
+
+/** فحص كود الاستعادة قبل خطوة كلمة المرور (لا يستهلكه) */
+export async function checkResetCodeAction(code: string): Promise<{ ok: true } | { ok: false; error: string }> {
+  if (!(await isSetUp())) return { ok: false, error: "اللوحة لم تُعدّ بعد، ابدأ من الإعداد الأول" };
+  const r = await checkResetCode(String(code ?? ""));
+  return r === "ok" ? { ok: true } : { ok: false, error: RESET_ERRORS[r]! };
+}
+
+export async function resetAction(_: FormState, f: FormData): Promise<FormState> {
+  if (str(f, "password") !== str(f, "confirm")) return { error: "كلمتا المرور غير متطابقتين" };
+  const r = await resetPassword(str(f, "code"), str(f, "password"));
+  if (r !== "ok") return { error: RESET_ERRORS[r] };
   redirect("/");
 }
 

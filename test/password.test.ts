@@ -1,4 +1,8 @@
+import { mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import { vi } from "vitest";
+process.env.LOCAL_DATA_DIR = mkdtempSync(path.join(tmpdir(), "panel-auth-"));
 vi.mock("next/headers", () => ({ cookies: async () => ({ get: () => undefined, set: () => undefined, delete: () => undefined }) }));
 vi.mock("next/navigation", () => ({ redirect: () => undefined }));
 import { describe, expect, it } from "vitest";
@@ -29,5 +33,24 @@ describe("setup code", () => {
       expect(await checkSetupCode(typed)).toBe(true);
     }
     expect(await checkSetupCode("4A2H-JEDC-457E")).toBe(false);
+  });
+});
+
+describe("forgotten password", () => {
+  it("a recovery code sets a new password once, and the old password stops working", async () => {
+    const { setupPassword, resetPassword, login, checkResetCode } = await import("@/lib/auth");
+    process.env.ADMIN_SETUP_CODE = "SETUP-CODE-1";
+    expect(await setupPassword("SETUP-CODE-1", "First-pass-123!")).toBe("ok");
+    delete process.env.ADMIN_RESET_CODE;
+    expect(await checkResetCode("anything")).toBe("off");
+    process.env.ADMIN_RESET_CODE = "RCVR-7K2M-9QXA";
+    expect(await resetPassword("RCVR-0000-0000", "New-pass-4567!")).toBe("bad");
+    expect(await resetPassword("rcvr 7k2m 9qxa", "weak")).toBe("weak");
+    expect(await resetPassword("rcvr 7k2m 9qxa", "New-pass-4567!")).toBe("ok");
+    expect(await login("First-pass-123!")).toBe("bad");
+    expect(await login("New-pass-4567!")).toBe("ok");
+    // نفس الكود لا يعمل مرة ثانية
+    expect(await resetPassword("RCVR-7K2M-9QXA", "Other-pass-890!")).toBe("used");
+    expect(await login("New-pass-4567!")).toBe("ok");
   });
 });

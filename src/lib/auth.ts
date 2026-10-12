@@ -1,7 +1,7 @@
 import "server-only";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { hashPassword, hmac, random, safeEqual, verifyPassword } from "./crypto";
+import { hashPassword, hmac, random, safeEqual, sha256, verifyPassword } from "./crypto";
 import { readJson, update } from "./store";
 import { strongPassword } from "./password";
 
@@ -10,7 +10,8 @@ import { strongPassword } from "./password";
  * وبعدها لا يُقبل الكود. الجلسة كوكي موقّع لا يقرؤه JavaScript، مدتها 12 ساعة.
  * بعد 8 محاولات خاطئة خلال 15 دقيقة يُغلق الدخول 15 دقيقة.
  */
-type Admin = { password_hash: string | null; session_secret: string; failures: number; failed_since: string | null };
+/** reset_used: بصمة آخر كود استعادة استُخدم، فلا يُقبل مرة ثانية */
+type Admin = { password_hash: string | null; session_secret: string; failures: number; failed_since: string | null; reset_used?: string | null };
 const COOKIE = "nz_admin";
 const HOURS = 12;
 const EMPTY: Admin = { password_hash: null, session_secret: "", failures: 0, failed_since: null };
@@ -50,6 +51,42 @@ export async function setupPassword(code: string, password: string): Promise<"ok
   return "ok";
 }
 
+/**
+ * استعادة كلمة مرور منسية: كود استعادة يضعه صاحب النظام في إعدادات الموقع (ADMIN_RESET_CODE).
+ * كل كود يعمل مرة واحدة، ولاستعادة أخرى يوضع كود جديد. المحاولات الخاطئة تُحسب مع محاولات الدخول،
+ * وبعد 8 خلال ربع ساعة يُغلق الاثنان. الاستعادة تُخرج كل الأجهزة، ولا تمس الفنادق.
+ */
+export const resetCodeConfigured = () => normalizeCode(process.env.ADMIN_RESET_CODE ?? "").length >= 6;
+
+const locked = (a: Admin) => !!a.failed_since && Date.now() - Date.parse(a.failed_since) < 15 * 60_000 && a.failures >= 8;
+
+async function countFailure(): Promise<void> {
+  await update<Admin>("admin", EMPTY, (v) => {
+    const fresh = !v.failed_since || Date.now() - Date.parse(v.failed_since) >= 15 * 60_000;
+    return { ...v, failures: fresh ? 1 : v.failures + 1, failed_since: fresh ? new Date().toISOString() : v.failed_since };
+  });
+}
+
+export async function checkResetCode(code: string): Promise<"ok" | "bad" | "used" | "locked" | "off"> {
+  if (!resetCodeConfigured()) return "off";
+  const a = await admin();
+  if (locked(a)) return "locked";
+  const expected = normalizeCode(process.env.ADMIN_RESET_CODE ?? "");
+  if (!safeEqual(normalizeCode(code), expected)) { await countFailure(); return "bad"; }
+  if (a.reset_used === sha256(expected)) return "used";
+  return "ok";
+}
+
+export async function resetPassword(code: string, password: string): Promise<"ok" | "bad" | "used" | "locked" | "off" | "weak"> {
+  const r = await checkResetCode(code);
+  if (r !== "ok") return r;
+  if (!strongPassword(password)) return "weak";
+  const used = sha256(normalizeCode(process.env.ADMIN_RESET_CODE ?? ""));
+  await update<Admin>("admin", EMPTY, (v) => ({ ...v, password_hash: hashPassword(password), session_secret: random(32), failures: 0, failed_since: null, reset_used: used }));
+  await startSession();
+  return "ok";
+}
+
 export async function login(password: string): Promise<"ok" | "bad" | "locked"> {
   const a = await admin();
   const since = a.failed_since ? Date.parse(a.failed_since) : 0;
@@ -60,10 +97,7 @@ export async function login(password: string): Promise<"ok" | "bad" | "locked"> 
     await startSession();
     return "ok";
   }
-  await update<Admin>("admin", EMPTY, (v) => {
-    const fresh = !v.failed_since || Date.now() - Date.parse(v.failed_since) >= 15 * 60_000;
-    return { ...v, failures: fresh ? 1 : v.failures + 1, failed_since: fresh ? new Date().toISOString() : v.failed_since };
-  });
+  await countFailure();
   return "bad";
 }
 
