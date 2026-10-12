@@ -1,6 +1,9 @@
 # لوحة نزيل على Netlify. البيانات والمفاتيح في مخزن Netlify Blobs الخاص بالموقع، لا في المستودع.
 [build]
   command = "npm run build"
+  # توفير حد الباقة المجانية: لا يُبنى الموقع إلا لتحديث رسالته فيها [deploy]
+  # (تُجمع التحديثات وتُنشر مرة واحدة). خروج 0 = تخطي البناء، 1 = بناء.
+  ignore = "git log -1 --pretty=%B | grep -qF '[deploy]' && exit 1 || exit 0"
 
 [build.environment]
   NODE_VERSION = "22"
