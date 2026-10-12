@@ -245,6 +245,11 @@
      "label": "القيود الدورية"
     },
     {
+     "key": "accounting.prepaid",
+     "kind": "part",
+     "label": "المصروفات المقدمة"
+    },
+    {
      "key": "accounting.fx_revaluation",
      "kind": "part",
      "label": "إعادة تقييم العملات"
