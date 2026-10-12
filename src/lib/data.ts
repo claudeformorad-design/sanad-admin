@@ -105,6 +105,9 @@ export async function findByInstance(instanceId: string): Promise<Hotel | null> 
 }
 
 export async function touchInstance(hotelId: string, info: { version: string | null; url: string | null }): Promise<void> {
+  // التواصل كل دقيقتين: لا يُكتب "آخر ظهور" إلا كل 5 دقائق أو عند تغير النسخة والرابط، توفيرًا للمخزن
+  const cur = (await listHotels()).find((h) => h.id === hotelId)?.instance;
+  if (cur && Date.now() - Date.parse(cur.last_seen) < 5 * 60_000 && (info.version ?? cur.version) === cur.version && (info.url ?? cur.url) === cur.url) return;
   await update<Hotel[]>(HOTELS, [], (all) => all.map((h) => (h.id === hotelId && h.instance
     ? { ...h, instance: { ...h.instance, last_seen: new Date().toISOString(), version: info.version ?? h.instance.version, url: info.url ?? h.instance.url } }
     : h)));
