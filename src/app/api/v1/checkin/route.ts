@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { hmac, safeEqual } from "@/lib/crypto";
-import { findByInstance, noticesFor, touchInstance } from "@/lib/data";
-import { issueLicense } from "@/lib/license";
+import { findByInstance, isRevoked, noticesFor, touchInstance } from "@/lib/data";
+import { issueLicense, issueRevocation } from "@/lib/license";
 import { publicNotice } from "@/lib/api";
 
 /**
@@ -25,6 +25,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "clock", now: Date.now() }, { status: 401 });
   }
   const hotel = await findByInstance(id);
+  // نظام فصله صاحب النظام (نقل أو حذف): إشعار فصل موقّع يوقفه ويطلب كودًا جديدًا
+  if (!hotel && (await isRevoked(id))) return NextResponse.json({ error: "revoked", revocation: await issueRevocation(id) }, { status: 410 });
   // السر لا يُرسل أبدًا: التوقيع وحده يثبت أن الطلب من النظام المربوط
   if (!hotel?.instance || !safeEqual(sig, hmac(hotel.instance.secret, `${ts}.${raw}`))) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });

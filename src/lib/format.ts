@@ -19,8 +19,8 @@ export type HotelState = "online" | "idle" | "waiting" | "suspended";
 export function hotelState(h: { status: string; instance: { last_seen: string } | null }, now = Date.now()): HotelState {
   if (h.status === "suspended") return "suspended";
   if (!h.instance) return "waiting";
-  // النظام المستخدَم يتواصل كل دقيقتين؛ أقل من 10 دقائق يعني أن أحدًا يعمل عليه الآن
-  return now - Date.parse(h.instance.last_seen) < 10 * 60_000 ? "online" : "idle";
+  // النظام المستخدَم يتواصل كل نصف دقيقة؛ آخر 3 دقائق يعني أن أحدًا يعمل عليه الآن
+  return now - Date.parse(h.instance.last_seen) < 3 * 60_000 ? "online" : "idle";
 }
 export const STATE_LABEL: Record<HotelState, string> = {
   online: "متصل الآن", idle: "غير متصل الآن", waiting: "بانتظار الربط", suspended: "موقوف",

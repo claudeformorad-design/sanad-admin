@@ -95,7 +95,7 @@ export async function saveHotelAction(_: FormState, f: FormData): Promise<FormSt
   if (!(await updateHotel(id, p.data))) return { error: "الفندق غير موجود" };
   revalidatePath("/");
   revalidatePath(`/hotels/${id}`);
-  return { ok: "حُفظ. يصل التغيير لنظام الفندق خلال دقيقتين" };
+  return { ok: "حُفظ. يصل التغيير لنظام الفندق خلال دقيقة" };
 }
 
 export async function setStatusAction(id: string, status: "active" | "suspended"): Promise<void> {

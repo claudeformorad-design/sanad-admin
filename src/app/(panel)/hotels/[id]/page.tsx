@@ -31,7 +31,7 @@ export default async function HotelPage({ params, searchParams }: { params: Prom
       </PageTitle>
       <div className="space-y-6">
         {sp.created && <Alert variant="success">أُضيف الفندق. أرسل له كود الربط بالأسفل.</Alert>}
-        {h.status === "suspended" && <Alert variant="destructive">هذا الفندق موقوف: يتوقف نظامه خلال دقيقتين، وبياناته محفوظة. يرجع يعمل بإعادة التفعيل من أسفل الصفحة.</Alert>}
+        {h.status === "suspended" && <Alert variant="destructive">هذا الفندق موقوف: يتوقف نظامه خلال دقيقة، وبياناته محفوظة. يرجع يعمل بإعادة التفعيل من أسفل الصفحة.</Alert>}
 
         {/* الربط أولًا: هو ما يحتاجه صاحب النظام في أغلب زياراته */}
         <section className="surface p-6">
@@ -56,7 +56,7 @@ export default async function HotelPage({ params, searchParams }: { params: Prom
               <details className="rounded-xl border border-line p-4">
                 <summary className="cursor-pointer text-[15.5px] text-slate-600">نقل الفندق لجهاز أو موقع آخر</summary>
                 <div className="mt-3 space-y-3">
-                  <p className="text-[15px] leading-relaxed text-slate-600">يُفصل النظام الحالي ويصدر كود ربط جديد. استخدمها فقط عند تغيير الجهاز أو نقل النظام.</p>
+                  <p className="text-[15px] leading-relaxed text-slate-600">يتوقف النظام الحالي خلال دقيقة، ويصدر كود ربط جديد تكتبه في الجهاز أو الموقع الجديد.</p>
                   <ConfirmButton label="فصل النظام وإصدار كود جديد" action={resetActivationAction.bind(null, h.id)}
                     confirm="يُفصل النظام الحالي ويحتاج كود الربط الجديد ليعمل. متابعة؟" />
                 </div>
@@ -93,16 +93,16 @@ export default async function HotelPage({ params, searchParams }: { params: Prom
           <div className="space-y-2">
             <h2 className="text-[18px] font-semibold text-ink">{h.status === "active" ? "إيقاف الفندق" : "إعادة التفعيل"}</h2>
             <p className="text-[15px] leading-relaxed text-slate-600">{h.status === "active"
-              ? "يتوقف نظام الفندق خلال دقيقتين، وتبقى بياناته محفوظة. تقدر ترجعه متى شئت."
-              : "يرجع نظام الفندق يعمل خلال دقيقتين بنفس بياناته."}</p>
+              ? "يتوقف نظام الفندق خلال دقيقة، وتبقى بياناته محفوظة. تقدر ترجعه متى شئت."
+              : "يرجع نظام الفندق يعمل خلال دقيقة بنفس بياناته."}</p>
             {h.status === "active"
-              ? <ConfirmButton variant="destructive" label="إيقاف الفندق" action={setStatusAction.bind(null, h.id, "suspended")} confirm={`إيقاف ${h.name}؟ يتوقف نظامه خلال دقيقتين.`} />
+              ? <ConfirmButton variant="destructive" label="إيقاف الفندق" action={setStatusAction.bind(null, h.id, "suspended")} confirm={`إيقاف ${h.name}؟ يتوقف نظامه خلال دقيقة.`} />
               : <ConfirmButton variant="default" label="إعادة التفعيل" action={setStatusAction.bind(null, h.id, "active")} />}
           </div>
           <div className="space-y-2 md:border-s md:border-line md:ps-6">
             <h2 className="text-[18px] font-semibold text-ink">حذف من اللوحة</h2>
-            <p className="text-[15px] leading-relaxed text-slate-600">يُحذف من قائمتك فقط، ولا تُحذف بيانات الفندق في نظامه.</p>
-            <ConfirmButton label="حذف" action={deleteHotelAction.bind(null, h.id)} confirm={`حذف ${h.name} من اللوحة؟`} />
+            <p className="text-[15px] leading-relaxed text-slate-600">يُحذف من لوحتك ويتوقف نظامه خلال دقيقة. بيانات الفندق داخل نظامه تبقى محفوظة.</p>
+            <ConfirmButton label="حذف" action={deleteHotelAction.bind(null, h.id)} confirm={`حذف ${h.name}؟ يتوقف نظامه خلال دقيقة ولا يعمل إلا بكود ربط جديد.`} />
           </div>
         </section>
       </div>

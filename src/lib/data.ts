@@ -44,6 +44,8 @@ export type Notice = {
 
 const HOTELS = "hotels";
 const NOTICES = "notices";
+/** الأنظمة المفصولة من اللوحة: تأخذ إشعار فصل موقّعًا في أول تواصل */
+const REVOKED = "revoked";
 
 export const listHotels = () => readJson<Hotel[]>(HOTELS, []);
 export const getHotel = async (id: string) => (await listHotels()).find((h) => h.id === id) ?? null;
@@ -72,12 +74,22 @@ export async function updateHotel(id: string, patch: Partial<Pick<Hotel, "name" 
 
 /** فصل النظام المربوط وإصدار كود جديد (عند تغيير الجهاز أو إعادة النشر) */
 export async function resetActivation(id: string): Promise<void> {
+  const old = (await getHotel(id))?.instance?.id;
   await update<Hotel[]>(HOTELS, [], (all) => all.map((h) => (h.id === id ? { ...h, instance: null, code: activationCode(), updated_at: new Date().toISOString() } : h)));
+  if (old) await revoke(old);
 }
 
 export async function deleteHotel(id: string): Promise<void> {
+  const old = (await getHotel(id))?.instance?.id;
   await update<Hotel[]>(HOTELS, [], (all) => all.filter((h) => h.id !== id));
+  if (old) await revoke(old);
 }
+
+async function revoke(instanceId: string): Promise<void> {
+  await update<string[]>(REVOKED, [], (all) => [...new Set([...all, instanceId])].slice(-500));
+}
+
+export const isRevoked = async (instanceId: string) => (await readJson<string[]>(REVOKED, [])).includes(instanceId);
 
 /**
  * ربط نظام بفندق بكود الربط. الكود يُستخدم مرة واحدة: بعد الربط لا يقبل نظامًا آخر حتى يُعاد من اللوحة.
@@ -105,9 +117,9 @@ export async function findByInstance(instanceId: string): Promise<Hotel | null> 
 }
 
 export async function touchInstance(hotelId: string, info: { version: string | null; url: string | null }): Promise<void> {
-  // التواصل كل دقيقتين: لا يُكتب "آخر ظهور" إلا كل 5 دقائق أو عند تغير النسخة والرابط، توفيرًا للمخزن
+  // النظام يتواصل كل نصف دقيقة أثناء استخدامه: "آخر ظهور" يُكتب مرة في الدقيقة على الأكثر، توفيرًا للمخزن
   const cur = (await listHotels()).find((h) => h.id === hotelId)?.instance;
-  if (cur && Date.now() - Date.parse(cur.last_seen) < 5 * 60_000 && (info.version ?? cur.version) === cur.version && (info.url ?? cur.url) === cur.url) return;
+  if (cur && Date.now() - Date.parse(cur.last_seen) < 60_000 && (info.version ?? cur.version) === cur.version && (info.url ?? cur.url) === cur.url) return;
   await update<Hotel[]>(HOTELS, [], (all) => all.map((h) => (h.id === hotelId && h.instance
     ? { ...h, instance: { ...h.instance, last_seen: new Date().toISOString(), version: info.version ?? h.instance.version, url: info.url ?? h.instance.url } }
     : h)));

@@ -41,3 +41,12 @@ export async function issueLicense(hotel: Hotel, opts: { instanceId: string | nu
   const body = b64url(JSON.stringify(payload));
   return `${body}.${signWith((await signingKeys()).privatePem, body)}`;
 }
+
+/**
+ * إشعار فصل موقّع: يُعطى لنظام فُصل من اللوحة (نقل لجهاز آخر أو حذف الفندق) حين يتواصل،
+ * فيتوقف ويطلب كود ربط جديد. موقّع بالمفتاح الخاص، فلا يستطيع أحد غير اللوحة إيقاف نظام فندق.
+ */
+export async function issueRevocation(instanceId: string): Promise<string> {
+  const body = b64url(JSON.stringify({ v: 1, kind: "nazeel-revocation", instance_id: instanceId, issued_at: new Date().toISOString() }));
+  return `${body}.${signWith((await signingKeys()).privatePem, body)}`;
+}
