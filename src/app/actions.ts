@@ -4,10 +4,9 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { changePassword, checkSetupCode, isSetUp, login, logout, requireAdmin, setupCodeConfigured, setupPassword } from "@/lib/auth";
-import { createHotel, createNotice, deleteHotel, deleteNotice, getHotel, resetActivation, updateHotel } from "@/lib/data";
-import { issueLicense } from "@/lib/license";
+import { createHotel, createNotice, deleteHotel, deleteNotice, resetActivation, updateHotel } from "@/lib/data";
 
-export type FormState = { error?: string; ok?: string; key?: string } | null;
+export type FormState = { error?: string; ok?: string } | null;
 
 const str = (f: FormData, k: string) => String(f.get(k) ?? "").trim();
 const list = (f: FormData, k: string) => f.getAll(k).map(String);
@@ -74,7 +73,7 @@ export async function saveHotelAction(_: FormState, f: FormData): Promise<FormSt
   if (!(await updateHotel(id, p.data))) return { error: "الفندق غير موجود" };
   revalidatePath("/");
   revalidatePath(`/hotels/${id}`);
-  return { ok: "حُفظ. يصل التغيير لنظام الفندق في أول تواصل" };
+  return { ok: "حُفظ. يصل التغيير لنظام الفندق خلال دقيقتين" };
 }
 
 export async function setStatusAction(id: string, status: "active" | "suspended"): Promise<void> {
@@ -94,19 +93,10 @@ export async function deleteHotelAction(id: string): Promise<void> {
   await requireAdmin();
   await deleteHotel(id);
   revalidatePath("/");
-  redirect("/");
+  redirect("/hotels");
 }
 
 /** مفتاح يدوي لنسخة تثبيت بلا إنترنت: مربوط ببصمة الجهاز التي تظهر في شاشة التفعيل */
-export async function offlineKeyAction(_: FormState, f: FormData): Promise<FormState> {
-  await requireAdmin();
-  const hotel = await getHotel(str(f, "id"));
-  const machine = str(f, "machine").toUpperCase();
-  if (!hotel) return { error: "الفندق غير موجود" };
-  if (!/^[A-Z0-9-]{8,64}$/.test(machine)) return { error: "اكتب رقم الجهاز كما يظهر في شاشة التفعيل" };
-  return { key: await issueLicense(hotel, { instanceId: null, machine }) };
-}
-
 const noticeSchema = z.object({
   title: z.string().min(2, "اكتب عنوان الإشعار").max(120),
   body: z.string().min(2, "اكتب نص الإشعار").max(1500),

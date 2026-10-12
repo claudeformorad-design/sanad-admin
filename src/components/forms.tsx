@@ -20,7 +20,6 @@ export function ActionForm({ action, children, className, submit }: {
       {state?.error && <Alert variant="destructive">{state.error}</Alert>}
       {state?.ok && <Alert variant="success">{state.ok}</Alert>}
       {children}
-      {state?.key && <KeyBox value={state.key} />}
       <Submit label={submit} />
     </form>
   );
@@ -37,16 +36,6 @@ export function CopyButton({ value, label = "نسخ" }: { value: string; label?:
     <Button type="button" variant="outline" size="sm" onClick={async () => { await navigator.clipboard.writeText(value); setDone(true); setTimeout(() => setDone(false), 1500); }}>
       {done ? <Check /> : <Copy />}{done ? "نُسخ" : label}
     </Button>
-  );
-}
-
-function KeyBox({ value }: { value: string }) {
-  return (
-    <div className="space-y-2 rounded-lg border border-line bg-subtle p-4">
-      <p className="text-[15px] font-medium text-ink">المفتاح جاهز. أرسله للفندق ليلصقه في شاشة التفعيل:</p>
-      <textarea readOnly dir="ltr" value={value} className="field h-28 w-full font-mono text-[12px]" aria-label="المفتاح" />
-      <CopyButton value={value} label="نسخ المفتاح" />
-    </div>
   );
 }
 
