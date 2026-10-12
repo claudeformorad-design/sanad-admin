@@ -18,6 +18,10 @@ export type LicensePayload = {
   /** بصمة الجهاز لمفتاح يدوي لنسخة التثبيت، أو null */
   machine: string | null;
   sections: string[];
+  /** صفحات وخانات وأزرار أوقفها صاحب النظام داخل الأقسام */
+  blocked: string[];
+  /** صلاحيات أوقفها صاحب النظام لكل موظفي الفندق حتى المدير */
+  blocked_permissions: string[];
   status: "active" | "suspended";
   updates: "forever";
   issued_at: string;
@@ -36,7 +40,7 @@ export async function signingKeys(): Promise<Signing> {
 export async function issueLicense(hotel: Hotel, opts: { instanceId: string | null; machine: string | null }): Promise<string> {
   const payload: LicensePayload = {
     v: 1, kind: "nazeel-license", hotel_id: hotel.id, hotel_name: hotel.name, instance_id: opts.instanceId, machine: opts.machine,
-    sections: hotel.sections, status: hotel.status, updates: "forever", issued_at: new Date().toISOString(),
+    sections: hotel.sections, blocked: hotel.blocked ?? [], blocked_permissions: hotel.blocked_permissions ?? [], status: hotel.status, updates: "forever", issued_at: new Date().toISOString(),
   };
   const body = b64url(JSON.stringify(payload));
   return `${body}.${signWith((await signingKeys()).privatePem, body)}`;

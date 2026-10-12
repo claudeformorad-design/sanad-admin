@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { BedDouble, Boxes, Building, Calculator, PackageSearch, PartyPopper, Shirt, ShoppingCart, Sparkles, Star, Users, Wrench, type LucideIcon } from "lucide-react";
+import { BedDouble, Boxes, Building, Calculator, PackageSearch, PartyPopper, Settings2, Shirt, ShoppingCart, Sparkles, Star, Users, Wrench, type LucideIcon } from "lucide-react";
 import { SECTIONS } from "@/lib/sections";
 import { cn } from "@/lib/utils";
 
-const META: Record<string, { icon: LucideIcon; hint: string }> = {
+export const META: Record<string, { icon: LucideIcon; hint: string }> = {
   pms: { icon: BedDouble, hint: "الحجوزات والغرف والاستقبال والفوترة" },
   accounting: { icon: Calculator, hint: "القيود والسندات والتقارير المالية" },
   pos: { icon: ShoppingCart, hint: "المطعم والكافيه والبيع المباشر" },
@@ -18,6 +18,7 @@ const META: Record<string, { icon: LucideIcon; hint: string }> = {
   inventory: { icon: Boxes, hint: "الأصناف والمخازن والجرد" },
   assets: { icon: Building, hint: "الأصول الثابتة والإهلاك" },
   assistant: { icon: Sparkles, hint: "مساعد ذكي يجيب من بيانات الفندق" },
+  general: { icon: Settings2, hint: "أجزاء مشتركة بين الأقسام" },
 };
 
 const CORE: string[] = SECTIONS.filter((s) => "core" in s).map((s) => s.key);

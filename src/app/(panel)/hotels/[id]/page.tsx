@@ -6,7 +6,7 @@ import { ago, day, hotelState } from "@/lib/format";
 import { deleteHotelAction, resetActivationAction, saveHotelAction, setStatusAction } from "@/app/actions";
 import { ActionForm, ConfirmButton } from "@/components/forms";
 import { CodeShare } from "@/components/code-share";
-import { SectionsPicker } from "@/components/sections-picker";
+import { SystemControl } from "@/components/system-control";
 import { Shell, PageTitle, StatePill } from "@/components/shell";
 import { Alert } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
@@ -76,10 +76,11 @@ export default async function HotelPage({ params, searchParams }: { params: Prom
           )}
         </section>
 
-        <ActionForm action={saveHotelAction} submit="حفظ" className="space-y-6">
+        <SystemControl hotelId={h.id} sections={h.sections} blocked={h.blocked ?? []} blockedPermissions={h.blocked_permissions ?? []} />
+
+        <ActionForm action={saveHotelAction} submit="حفظ البيانات" className="surface space-y-4 p-6">
           <input type="hidden" name="id" value={h.id} />
-          <section className="surface p-6"><SectionsPicker selected={h.sections} /></section>
-          <section className="surface space-y-4 p-6">
+          <section className="space-y-4">
             <h2 className="text-[18px] font-semibold text-ink">بيانات الفندق</h2>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5"><Label htmlFor="name">اسم الفندق</Label><Input id="name" name="name" defaultValue={h.name} required /></div>

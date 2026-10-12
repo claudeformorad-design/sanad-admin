@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { activationCode, random } from "./crypto";
 import { readJson, update } from "./store";
 import { SECTION_KEYS } from "./sections";
+import { cleanBlocked, cleanBlockedPermissions } from "./catalog";
 
 /** فندق مباع: أقسامه وحالته وكود ربطه، والنظام المربوط به (نسخة على الموقع أو على جهاز) */
 export type Hotel = {
@@ -10,6 +11,10 @@ export type Hotel = {
   name: string;
   contact: string;
   sections: string[];
+  /** صفحات وخانات وأزرار أوقفها صاحب النظام داخل الأقسام (مفاتيح الفهرس) */
+  blocked?: string[];
+  /** صلاحيات أوقفها صاحب النظام: تسقط من كل موظفي الفندق حتى المدير العام */
+  blocked_permissions?: string[];
   status: "active" | "suspended";
   code: string;
   notes: string;
@@ -62,11 +67,17 @@ export async function createHotel(input: { name: string; contact: string; sectio
   return hotel;
 }
 
-export async function updateHotel(id: string, patch: Partial<Pick<Hotel, "name" | "contact" | "sections" | "status" | "notes">>): Promise<Hotel | null> {
+export async function updateHotel(id: string, patch: Partial<Pick<Hotel, "name" | "contact" | "sections" | "blocked" | "blocked_permissions" | "status" | "notes">>): Promise<Hotel | null> {
   let out: Hotel | null = null;
   await update<Hotel[]>(HOTELS, [], (all) => all.map((h) => {
     if (h.id !== id) return h;
-    out = { ...h, ...patch, ...(patch.sections ? { sections: cleanSections(patch.sections) } : {}), updated_at: new Date().toISOString() };
+    out = {
+      ...h, ...patch,
+      ...(patch.sections ? { sections: cleanSections(patch.sections) } : {}),
+      ...(patch.blocked ? { blocked: cleanBlocked(patch.blocked) } : {}),
+      ...(patch.blocked_permissions ? { blocked_permissions: cleanBlockedPermissions(patch.blocked_permissions) } : {}),
+      updated_at: new Date().toISOString(),
+    };
     return out;
   }));
   return out;

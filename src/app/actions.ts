@@ -90,12 +90,31 @@ export async function createHotelAction(_: FormState, f: FormData): Promise<Form
 export async function saveHotelAction(_: FormState, f: FormData): Promise<FormState> {
   await requireAdmin();
   const id = str(f, "id");
-  const p = hotelSchema.safeParse({ name: str(f, "name"), contact: str(f, "contact"), notes: str(f, "notes"), sections: list(f, "sections") });
+  const p = hotelSchema.omit({ sections: true }).safeParse({ name: str(f, "name"), contact: str(f, "contact"), notes: str(f, "notes") });
   if (!p.success) return { error: p.error.issues[0]?.message ?? "تحقق من البيانات" };
   if (!(await updateHotel(id, p.data))) return { error: "الفندق غير موجود" };
   revalidatePath("/");
   revalidatePath(`/hotels/${id}`);
-  return { ok: "حُفظ. يصل التغيير لنظام الفندق خلال دقيقة" };
+  return { ok: "حُفظت بيانات الفندق" };
+}
+
+const controlSchema = z.object({
+  id: z.string().min(1),
+  sections: z.array(z.string()).refine((s) => s.includes("pms") || s.includes("accounting"), "اختر الحجوزات أو المحاسبة على الأقل"),
+  blocked: z.array(z.string()).max(1000),
+  blocked_permissions: z.array(z.string()).max(1000),
+});
+
+/** التحكم الدقيق في نظام الفندق: الأقسام المشتراة، وما يُوقف داخلها، وصلاحيات الموظفين حتى المدير */
+export async function saveControlAction(input: unknown): Promise<{ ok: true } | { ok: false; error: string }> {
+  await requireAdmin();
+  const p = controlSchema.safeParse(input);
+  if (!p.success) return { ok: false, error: p.error.issues[0]?.message ?? "تحقق من البيانات" };
+  const { id, ...patch } = p.data;
+  if (!(await updateHotel(id, patch))) return { ok: false, error: "الفندق غير موجود" };
+  revalidatePath("/");
+  revalidatePath(`/hotels/${id}`);
+  return { ok: true };
 }
 
 export async function setStatusAction(id: string, status: "active" | "suspended"): Promise<void> {

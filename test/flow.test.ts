@@ -82,4 +82,22 @@ describe("panel flow", () => {
     expect(r.status).toBe(409);
     expect((await r.json()).error).toBe("suspended");
   });
+
+  it("carries the owner's fine-grained blocks in the signed license, dropping unknown and core keys", async () => {
+    const { TREE } = await import("@/lib/catalog");
+    expect(TREE.length).toBeGreaterThan(5);
+    const h = await createHotel({ name: "فندق الدقة", contact: "", sections: ["pms", "accounting"], notes: "" });
+    await updateHotel(h.id, {
+      blocked: ["folio.void", "pms.cashier", "accounting.journal", "nope", "pms"],
+      blocked_permissions: ["invoices.write_off", "settings.users.manage", "bogus.perm"],
+    });
+    const saved = (await getHotel(h.id))!;
+    // الأساسي المقفول والقسم والمجهول لا تُحفظ، وإدارة المستخدمين لا تُوقف
+    expect(saved.blocked).toEqual(["folio.void", "pms.cashier"]);
+    expect(saved.blocked_permissions).toEqual(["invoices.write_off"]);
+    const res = await activateRoute.POST(post("/api/v1/activate", { code: saved.code, mode: "cloud", url: "https://daqa.example", version: "1.0" }));
+    const { body, sig, payload } = decode((await res.json()).license);
+    expect(verifyWith(publicKey, body, sig)).toBe(true);
+    expect(payload).toMatchObject({ blocked: ["folio.void", "pms.cashier"], blocked_permissions: ["invoices.write_off"] });
+  });
 });

@@ -1,0 +1,1128 @@
+{
+ "generated_at": "2026-10-12",
+ "tree": [
+  {
+   "key": "pms",
+   "kind": "section",
+   "label": "الحجوزات والاستقبال",
+   "hint": "الحجوزات والنزلاء والغرف والأسعار والاستقبال",
+   "children": [
+    {
+     "key": "pms.front_desk",
+     "kind": "part",
+     "label": "لوحة الاستقبال"
+    },
+    {
+     "key": "pms.reservations",
+     "kind": "part",
+     "label": "الحجوزات",
+     "locked": "أساس قسم الحجوزات، لا يعمل القسم بدونه",
+     "children": [
+      {
+       "key": "reservations.group",
+       "kind": "field",
+       "label": "حجز المجموعة",
+       "hint": "خيار عدة غرف لنفس الفترة في شاشة الحجز الجديد"
+      },
+      {
+       "key": "reservations.series",
+       "kind": "field",
+       "label": "الحجز المتكرر",
+       "hint": "خيار نفس الحجز كل أسبوع"
+      },
+      {
+       "key": "reservations.source",
+       "kind": "field",
+       "label": "مصدر الحجز"
+      },
+      {
+       "key": "reservations.company",
+       "kind": "field",
+       "label": "الشركة أو جهة الفوترة"
+      },
+      {
+       "key": "reservations.manual_rate",
+       "kind": "field",
+       "label": "السعر اليدوي والشهري",
+       "hint": "تحديد سعر الليلة أو السعر الشهري يدويًا بدل سعر النظام"
+      },
+      {
+       "key": "reservations.special_requests",
+       "kind": "field",
+       "label": "طلبات النزيل"
+      },
+      {
+       "key": "reservations.notes",
+       "kind": "field",
+       "label": "ملاحظات داخلية"
+      },
+      {
+       "key": "guests.phone",
+       "kind": "field",
+       "label": "جوال النزيل الجديد"
+      },
+      {
+       "key": "guests.id",
+       "kind": "field",
+       "label": "هوية النزيل الجديد"
+      },
+      {
+       "key": "guests.nationality",
+       "kind": "field",
+       "label": "جنسية النزيل الجديد"
+      },
+      {
+       "key": "reservations.overbook",
+       "kind": "button",
+       "label": "الحجز الزائد فوق السعة",
+       "permissions": [
+        "pms.reservations.overbook"
+       ]
+      },
+      {
+       "key": "reservations.waive_fees",
+       "kind": "button",
+       "label": "الإلغاء وعدم الحضور بدون رسوم",
+       "hint": "زر الإعفاء من رسوم سياسة الحجز"
+      }
+     ]
+    },
+    {
+     "key": "pms.tape_chart",
+     "kind": "part",
+     "label": "جدول الإشغال"
+    },
+    {
+     "key": "pms.guests",
+     "kind": "part",
+     "label": "النزلاء"
+    },
+    {
+     "key": "pms.waitlist",
+     "kind": "part",
+     "label": "قائمة الانتظار"
+    },
+    {
+     "key": "pms.cashier",
+     "kind": "part",
+     "label": "الصندوق والورديات",
+     "permissions": [
+      "cashier.shifts",
+      "cashier.shifts.manage"
+     ]
+    },
+    {
+     "key": "pms.night_audit",
+     "kind": "part",
+     "label": "تدقيق نهاية اليوم"
+    },
+    {
+     "key": "pms.guest_register",
+     "kind": "part",
+     "label": "كشف النزلاء"
+    },
+    {
+     "key": "pms.reservations_report",
+     "kind": "part",
+     "label": "تقرير الحجوزات"
+    },
+    {
+     "key": "pms.guest_balances",
+     "kind": "part",
+     "label": "تقرير أرصدة النزلاء"
+    },
+    {
+     "key": "pms.rooms",
+     "kind": "part",
+     "label": "الغرف وحالتها",
+     "locked": "حالة الغرف أساس الاستقبال والتسكين"
+    },
+    {
+     "key": "pms.rates",
+     "kind": "part",
+     "label": "الأسعار والعروض"
+    },
+    {
+     "key": "pms.rate_plans",
+     "kind": "part",
+     "label": "خطط الأسعار"
+    },
+    {
+     "key": "pms.housekeeping",
+     "kind": "part",
+     "label": "التدبير الفندقي",
+     "permissions": [
+      "pms.housekeeping"
+     ]
+    },
+    {
+     "key": "pms.room_setup",
+     "kind": "part",
+     "label": "إعداد الغرف",
+     "locked": "منها تُضاف الغرف وأنواعها"
+    }
+   ]
+  },
+  {
+   "key": "pos",
+   "kind": "section",
+   "label": "نقاط البيع",
+   "hint": "البيع في المطعم والكافيه على الغرفة أو نقدًا",
+   "permissions": [
+    "pos.sell",
+    "pos.manage"
+   ]
+  },
+  {
+   "key": "maintenance",
+   "kind": "section",
+   "label": "الصيانة",
+   "hint": "بلاغات الأعطال والأجهزة وقطع الغيار",
+   "permissions": [
+    "maintenance.report",
+    "maintenance.manage"
+   ]
+  },
+  {
+   "key": "lost_found",
+   "kind": "section",
+   "label": "المفقودات والأمانات",
+   "hint": "المفقودات وأمانات الخزنة",
+   "permissions": [
+    "lost_found.manage"
+   ]
+  },
+  {
+   "key": "laundry",
+   "kind": "section",
+   "label": "المغسلة",
+   "hint": "طلبات المغسلة والمفروشات",
+   "permissions": [
+    "laundry.manage"
+   ]
+  },
+  {
+   "key": "events",
+   "kind": "section",
+   "label": "القاعات والمناسبات",
+   "hint": "حجز القاعات والمناسبات وعقودها",
+   "permissions": [
+    "events.view",
+    "events.manage"
+   ]
+  },
+  {
+   "key": "surveys",
+   "kind": "section",
+   "label": "تقييمات النزلاء",
+   "hint": "تقييم النزلاء بعد المغادرة",
+   "permissions": [
+    "feedback.view",
+    "feedback.manage"
+   ]
+  },
+  {
+   "key": "accounting",
+   "kind": "section",
+   "label": "المحاسبة",
+   "hint": "القيود والفواتير والسندات والموردين والتقارير المالية",
+   "children": [
+    {
+     "key": "accounting.accounts",
+     "kind": "part",
+     "label": "دليل الحسابات",
+     "locked": "أساس المحاسبة"
+    },
+    {
+     "key": "accounting.journal",
+     "kind": "part",
+     "label": "القيود اليومية",
+     "locked": "أساس المحاسبة"
+    },
+    {
+     "key": "accounting.recurring",
+     "kind": "part",
+     "label": "القيود الدورية"
+    },
+    {
+     "key": "accounting.fx_revaluation",
+     "kind": "part",
+     "label": "إعادة تقييم العملات"
+    },
+    {
+     "key": "accounting.folios",
+     "kind": "part",
+     "label": "الفوليو",
+     "locked": "فوليو النزيل أساس الحساب بين الحجز والمحاسبة",
+     "children": [
+      {
+       "key": "folio.allowance",
+       "kind": "button",
+       "label": "الخصم والتسوية على الفوليو",
+       "permissions": [
+        "folio.allowance"
+       ]
+      },
+      {
+       "key": "folio.void",
+       "kind": "button",
+       "label": "إلغاء حركة على الفوليو",
+       "permissions": [
+        "folio.void"
+       ]
+      }
+     ]
+    },
+    {
+     "key": "accounting.invoices",
+     "kind": "part",
+     "label": "الفواتير",
+     "locked": "فواتير النزلاء تصدر منها",
+     "children": [
+      {
+       "key": "invoices.direct",
+       "kind": "button",
+       "label": "الفواتير المباشرة",
+       "hint": "فاتورة لعميل بدون حجز",
+       "permissions": [
+        "invoices.create"
+       ]
+      },
+      {
+       "key": "invoices.credit_note",
+       "kind": "button",
+       "label": "الإشعار الدائن",
+       "permissions": [
+        "invoices.credit_note"
+       ]
+      },
+      {
+       "key": "invoices.write_off",
+       "kind": "button",
+       "label": "إعدام الديون المعدومة",
+       "permissions": [
+        "invoices.write_off"
+       ]
+      }
+     ]
+    },
+    {
+     "key": "accounting.vouchers",
+     "kind": "part",
+     "label": "السندات",
+     "locked": "سندات القبض والصرف أساس الصندوق",
+     "children": [
+      {
+       "key": "payments.void",
+       "kind": "button",
+       "label": "إلغاء السندات",
+       "permissions": [
+        "payments.void"
+       ]
+      }
+     ]
+    },
+    {
+     "key": "accounting.cheques",
+     "kind": "part",
+     "label": "الشيكات"
+    },
+    {
+     "key": "accounting.transfers",
+     "kind": "part",
+     "label": "التحويلات وتبديل العملة"
+    },
+    {
+     "key": "accounting.customers",
+     "kind": "part",
+     "label": "العملاء",
+     "children": [
+      {
+       "key": "customers.name_en",
+       "kind": "field",
+       "label": "اسم العميل بالإنجليزية"
+      },
+      {
+       "key": "customers.tax_number",
+       "kind": "field",
+       "label": "الرقم الضريبي للعميل"
+      },
+      {
+       "key": "customers.cr",
+       "kind": "field",
+       "label": "السجل التجاري للعميل"
+      },
+      {
+       "key": "customers.credit",
+       "kind": "field",
+       "label": "البيع الآجل وحد الائتمان"
+      }
+     ]
+    },
+    {
+     "key": "accounting.vendors",
+     "kind": "part",
+     "label": "الموردون"
+    },
+    {
+     "key": "accounting.purchase_orders",
+     "kind": "part",
+     "label": "أوامر الشراء",
+     "permissions": [
+      "purchases.manage"
+     ]
+    },
+    {
+     "key": "accounting.bills",
+     "kind": "part",
+     "label": "فواتير الموردين",
+     "children": [
+      {
+       "key": "bills.debit_note",
+       "kind": "button",
+       "label": "مرتجعات المشتريات",
+       "permissions": [
+        "bills.debit_note"
+       ]
+      }
+     ]
+    },
+    {
+     "key": "accounting.commissions",
+     "kind": "part",
+     "label": "عمولات وكلاء الحجز",
+     "permissions": [
+      "commissions.manage"
+     ]
+    },
+    {
+     "key": "accounting.vendor_advances",
+     "kind": "part",
+     "label": "عربون الموردين"
+    },
+    {
+     "key": "accounting.payroll",
+     "kind": "part",
+     "label": "الرواتب",
+     "permissions": [
+      "payroll.manage"
+     ]
+    },
+    {
+     "key": "accounting.bank",
+     "kind": "part",
+     "label": "المطابقة البنكية",
+     "permissions": [
+      "bank.reconcile"
+     ]
+    },
+    {
+     "key": "accounting.budgets",
+     "kind": "part",
+     "label": "الموازنة التقديرية",
+     "permissions": [
+      "budgets.manage"
+     ]
+    },
+    {
+     "key": "accounting.periods",
+     "kind": "part",
+     "label": "الفترات والإقفال",
+     "locked": "الفترات تحمي الأرقام المقفلة",
+     "children": [
+      {
+       "key": "periods.post_closed",
+       "kind": "button",
+       "label": "الترحيل في فترة مقفلة",
+       "permissions": [
+        "gl.periods.post_closed"
+       ]
+      }
+     ]
+    },
+    {
+     "key": "accounting.opening_balances",
+     "kind": "part",
+     "label": "الأرصدة الافتتاحية"
+    },
+    {
+     "key": "accounting.reports",
+     "kind": "part",
+     "label": "التقارير",
+     "hint": "القوائم والتقارير المالية",
+     "locked": "التقارير المالية أساس المحاسبة"
+    },
+    {
+     "key": "accounting.tax_return",
+     "kind": "part",
+     "label": "الإقرار الضريبي"
+    }
+   ]
+  },
+  {
+   "key": "hr",
+   "kind": "section",
+   "label": "الموارد البشرية",
+   "hint": "الموظفون والحضور والإجازات والسلف والرواتب",
+   "permissions": [
+    "hr.view",
+    "hr.manage"
+   ]
+  },
+  {
+   "key": "inventory",
+   "kind": "section",
+   "label": "المخزون",
+   "hint": "الأصناف وحركات المخزون والجرد",
+   "permissions": [
+    "inventory.view",
+    "inventory.manage"
+   ]
+  },
+  {
+   "key": "assets",
+   "kind": "section",
+   "label": "الأصول الثابتة",
+   "hint": "الأصول الثابتة وإهلاكها",
+   "permissions": [
+    "assets.view",
+    "assets.manage"
+   ]
+  },
+  {
+   "key": "assistant",
+   "kind": "section",
+   "label": "المساعد الذكي",
+   "hint": "المساعد الذي يجيب عن أسئلة الأرقام والتقارير"
+  },
+  {
+   "key": "general",
+   "kind": "section",
+   "label": "عام",
+   "hint": "أجزاء مشتركة بين الأقسام",
+   "locked": "أساس النظام",
+   "children": [
+    {
+     "key": "general.dashboard",
+     "kind": "part",
+     "label": "لوحة التحكم",
+     "locked": "الصفحة الرئيسية"
+    },
+    {
+     "key": "general.approvals",
+     "kind": "part",
+     "label": "الموافقات"
+    },
+    {
+     "key": "general.import",
+     "kind": "part",
+     "label": "استيراد البيانات"
+    },
+    {
+     "key": "general.audit",
+     "kind": "part",
+     "label": "سجل التدقيق"
+    },
+    {
+     "key": "general.whatsapp",
+     "kind": "button",
+     "label": "أزرار واتساب",
+     "hint": "مراسلة النزيل والعميل والموظف من الحجوزات والإيصالات والكشوف"
+    },
+    {
+     "key": "hotel.tax_number",
+     "kind": "field",
+     "label": "الرقم الضريبي للفندق"
+    },
+    {
+     "key": "hotel.cr",
+     "kind": "field",
+     "label": "السجل التجاري للفندق"
+    },
+    {
+     "key": "hotel.legal_name",
+     "kind": "field",
+     "label": "الاسم القانوني للفندق"
+    }
+   ]
+  }
+ ],
+ "permission_groups": [
+  {
+   "key": "settings",
+   "label": "الإعدادات"
+  },
+  {
+   "key": "approvals",
+   "label": "الموافقات"
+  },
+  {
+   "key": "audit",
+   "label": "سجل التدقيق"
+  },
+  {
+   "key": "pms",
+   "label": "الاستقبال والحجوزات والغرف"
+  },
+  {
+   "key": "pos",
+   "label": "نقاط البيع"
+  },
+  {
+   "key": "cashier",
+   "label": "الصندوق والورديات"
+  },
+  {
+   "key": "folio",
+   "label": "الفوليو والفوترة"
+  },
+  {
+   "key": "customers",
+   "label": "العملاء والشركات"
+  },
+  {
+   "key": "invoices",
+   "label": "الفواتير"
+  },
+  {
+   "key": "payments",
+   "label": "السندات والمدفوعات"
+  },
+  {
+   "key": "coa",
+   "label": "دليل الحسابات"
+  },
+  {
+   "key": "gl",
+   "label": "القيود والفترات"
+  },
+  {
+   "key": "reports",
+   "label": "التقارير المالية"
+  },
+  {
+   "key": "vendors",
+   "label": "الموردون"
+  },
+  {
+   "key": "purchases",
+   "label": "المشتريات"
+  },
+  {
+   "key": "bills",
+   "label": "فواتير الموردين"
+  },
+  {
+   "key": "payroll",
+   "label": "الرواتب"
+  },
+  {
+   "key": "bank",
+   "label": "البنك"
+  },
+  {
+   "key": "assets",
+   "label": "الأصول"
+  },
+  {
+   "key": "inventory",
+   "label": "المخزون"
+  },
+  {
+   "key": "hr",
+   "label": "الموارد البشرية"
+  },
+  {
+   "key": "maintenance",
+   "label": "الصيانة"
+  },
+  {
+   "key": "guest_services",
+   "label": "المفقودات والمغسلة"
+  },
+  {
+   "key": "events",
+   "label": "القاعات والمناسبات"
+  },
+  {
+   "key": "feedback",
+   "label": "تقييمات النزلاء"
+  },
+  {
+   "key": "other",
+   "label": "أخرى"
+  }
+ ],
+ "permissions": [
+  {
+   "code": "approvals.decide",
+   "group": "approvals",
+   "label": "الموافقة على طلبات الموظفين ورفضها",
+   "product": "core"
+  },
+  {
+   "code": "assets.view",
+   "group": "assets",
+   "label": "عرض الأصول الثابتة",
+   "product": "accounting"
+  },
+  {
+   "code": "assets.manage",
+   "group": "assets",
+   "label": "إدارة الأصول والإهلاك",
+   "product": "accounting"
+  },
+  {
+   "code": "audit.logs.view",
+   "group": "audit",
+   "label": "عرض سجل التدقيق",
+   "product": "core"
+  },
+  {
+   "code": "bank.reconcile",
+   "group": "bank",
+   "label": "المطابقة البنكية",
+   "product": "accounting"
+  },
+  {
+   "code": "bills.view",
+   "group": "bills",
+   "label": "عرض فواتير الموردين",
+   "product": "accounting"
+  },
+  {
+   "code": "bills.create",
+   "group": "bills",
+   "label": "تسجيل فواتير الموردين",
+   "product": "accounting"
+  },
+  {
+   "code": "cashier.shifts",
+   "group": "cashier",
+   "label": "فتح وإغلاق وردية الكاشير",
+   "product": "core"
+  },
+  {
+   "code": "cashier.shifts.manage",
+   "group": "cashier",
+   "label": "عرض كل الورديات وإغلاقها ومراجعتها",
+   "product": "core"
+  },
+  {
+   "code": "coa.accounts.view",
+   "group": "coa",
+   "label": "عرض دليل الحسابات",
+   "product": "accounting"
+  },
+  {
+   "code": "coa.accounts.manage",
+   "group": "coa",
+   "label": "إدارة دليل الحسابات",
+   "product": "accounting"
+  },
+  {
+   "code": "customers.view",
+   "group": "customers",
+   "label": "عرض العملاء",
+   "product": "core"
+  },
+  {
+   "code": "customers.manage",
+   "group": "customers",
+   "label": "إدارة العملاء",
+   "product": "core"
+  },
+  {
+   "code": "events.view",
+   "group": "events",
+   "label": "عرض المناسبات",
+   "product": "pms"
+  },
+  {
+   "code": "events.manage",
+   "group": "events",
+   "label": "إدارة المناسبات وعقودها",
+   "product": "pms"
+  },
+  {
+   "code": "feedback.view",
+   "group": "feedback",
+   "label": "تقارير رضا النزلاء",
+   "product": "pms"
+  },
+  {
+   "code": "feedback.manage",
+   "group": "feedback",
+   "label": "تسجيل تقييمات النزلاء",
+   "product": "pms"
+  },
+  {
+   "code": "folio.view",
+   "group": "folio",
+   "label": "عرض الفوليو",
+   "product": "core"
+  },
+  {
+   "code": "folio.manage",
+   "group": "folio",
+   "label": "فتح الفوليو وتسجيل الرسوم والمدفوعات",
+   "product": "core"
+  },
+  {
+   "code": "folio.allowance",
+   "group": "folio",
+   "label": "منح الخصومات والتسويات",
+   "product": "core"
+  },
+  {
+   "code": "folio.void",
+   "group": "folio",
+   "label": "إلغاء حركات الفوليو",
+   "product": "core"
+  },
+  {
+   "code": "folio.checkout",
+   "group": "folio",
+   "label": "إغلاق الفوليو وإصدار الفاتورة",
+   "product": "core"
+  },
+  {
+   "code": "gl.journal.view",
+   "group": "gl",
+   "label": "عرض القيود اليومية",
+   "product": "accounting"
+  },
+  {
+   "code": "gl.journal.create",
+   "group": "gl",
+   "label": "إنشاء وتعديل مسودات القيود",
+   "product": "accounting"
+  },
+  {
+   "code": "gl.journal.post",
+   "group": "gl",
+   "label": "ترحيل القيود",
+   "product": "accounting"
+  },
+  {
+   "code": "gl.journal.approve",
+   "group": "gl",
+   "label": "اعتماد القيود فوق حد الموافقة",
+   "product": "accounting"
+  },
+  {
+   "code": "gl.journal.reverse",
+   "group": "gl",
+   "label": "عكس القيود المرحّلة",
+   "product": "accounting"
+  },
+  {
+   "code": "gl.periods.view",
+   "group": "gl",
+   "label": "عرض الفترات المحاسبية",
+   "product": "accounting"
+  },
+  {
+   "code": "gl.periods.manage",
+   "group": "gl",
+   "label": "إدارة وإقفال الفترات المحاسبية",
+   "product": "accounting"
+  },
+  {
+   "code": "gl.periods.post_closed",
+   "group": "gl",
+   "label": "الترحيل في فترة مقفلة (استثناء)",
+   "product": "accounting"
+  },
+  {
+   "code": "lost_found.manage",
+   "group": "guest_services",
+   "label": "المفقودات وأمانات الخزنة",
+   "product": "pms"
+  },
+  {
+   "code": "laundry.manage",
+   "group": "guest_services",
+   "label": "المغسلة والمفروشات",
+   "product": "pms"
+  },
+  {
+   "code": "hr.view",
+   "group": "hr",
+   "label": "عرض الموظفين والحضور والإجازات والرواتب",
+   "product": "accounting"
+  },
+  {
+   "code": "hr.manage",
+   "group": "hr",
+   "label": "إدارة الموظفين والحضور والإجازات والسلف والجزاءات",
+   "product": "accounting"
+  },
+  {
+   "code": "inventory.view",
+   "group": "inventory",
+   "label": "عرض المخزون",
+   "product": "accounting"
+  },
+  {
+   "code": "inventory.manage",
+   "group": "inventory",
+   "label": "حركات المخزون",
+   "product": "accounting"
+  },
+  {
+   "code": "invoices.view",
+   "group": "invoices",
+   "label": "عرض الفواتير",
+   "product": "core"
+  },
+  {
+   "code": "invoices.create",
+   "group": "invoices",
+   "label": "إصدار الفواتير المباشرة",
+   "product": "accounting"
+  },
+  {
+   "code": "invoices.credit_note",
+   "group": "invoices",
+   "label": "إصدار إشعار دائن",
+   "product": "accounting"
+  },
+  {
+   "code": "invoices.write_off",
+   "group": "invoices",
+   "label": "إعدام الديون المعدومة",
+   "product": "core"
+  },
+  {
+   "code": "maintenance.report",
+   "group": "maintenance",
+   "label": "الإبلاغ عن الأعطال",
+   "product": "core"
+  },
+  {
+   "code": "maintenance.manage",
+   "group": "maintenance",
+   "label": "إدارة الصيانة والأجهزة وقطع الغيار",
+   "product": "core"
+  },
+  {
+   "code": "bills.debit_note",
+   "group": "bills",
+   "label": "مرتجعات المشتريات (إشعار مدين)",
+   "product": "core"
+  },
+  {
+   "code": "commissions.manage",
+   "group": "other",
+   "label": "عمولات وكلاء الحجز",
+   "product": "core"
+  },
+  {
+   "code": "payments.view",
+   "group": "payments",
+   "label": "عرض السندات",
+   "product": "accounting"
+  },
+  {
+   "code": "payments.receipt",
+   "group": "payments",
+   "label": "إصدار سندات القبض",
+   "product": "accounting"
+  },
+  {
+   "code": "payments.disbursement",
+   "group": "payments",
+   "label": "إصدار سندات الصرف",
+   "product": "accounting"
+  },
+  {
+   "code": "payments.void",
+   "group": "payments",
+   "label": "إلغاء السندات",
+   "product": "accounting"
+  },
+  {
+   "code": "payments.approve_large",
+   "group": "payments",
+   "label": "اعتماد السندات فوق حد الموافقة",
+   "product": "accounting"
+  },
+  {
+   "code": "payroll.manage",
+   "group": "payroll",
+   "label": "ترحيل الرواتب",
+   "product": "accounting"
+  },
+  {
+   "code": "pms.reservations.view",
+   "group": "pms",
+   "label": "عرض الحجوزات والنزلاء والغرف",
+   "product": "pms"
+  },
+  {
+   "code": "pms.reservations.manage",
+   "group": "pms",
+   "label": "إنشاء وتعديل الحجوزات والنزلاء والانتظار",
+   "product": "pms"
+  },
+  {
+   "code": "pms.reservations.cancel",
+   "group": "pms",
+   "label": "إلغاء الحجوزات وتسجيل عدم الحضور",
+   "product": "pms"
+  },
+  {
+   "code": "pms.reservations.overbook",
+   "group": "pms",
+   "label": "الحجز الزائد فوق السعة",
+   "product": "pms"
+  },
+  {
+   "code": "pms.rates.manage",
+   "group": "pms",
+   "label": "إدارة الأسعار والمواسم والعروض",
+   "product": "pms"
+  },
+  {
+   "code": "pms.rates.override",
+   "group": "pms",
+   "label": "تحديد سعر يدوي أو شهري للحجز",
+   "product": "pms"
+  },
+  {
+   "code": "pms.rooms.status",
+   "group": "pms",
+   "label": "تحديث حالة الغرف (النظافة والخدمة)",
+   "product": "pms"
+  },
+  {
+   "code": "pms.setup.manage",
+   "group": "pms",
+   "label": "إدارة الطوابق وأنواع الغرف والغرف",
+   "product": "pms"
+  },
+  {
+   "code": "pms.night_audit",
+   "group": "pms",
+   "label": "تشغيل تدقيق نهاية اليوم",
+   "product": "pms"
+  },
+  {
+   "code": "pms.reports.view",
+   "group": "pms",
+   "label": "تقارير الإدارة وكشف النزلاء",
+   "product": "pms"
+  },
+  {
+   "code": "pms.housekeeping",
+   "group": "pms",
+   "label": "مهام التدبير الفندقي",
+   "product": "pms"
+  },
+  {
+   "code": "pos.sell",
+   "group": "pos",
+   "label": "البيع في نقاط البيع",
+   "product": "pms"
+  },
+  {
+   "code": "pos.manage",
+   "group": "pos",
+   "label": "إعداد نقاط البيع وأصنافها",
+   "product": "pms"
+  },
+  {
+   "code": "purchases.manage",
+   "group": "purchases",
+   "label": "أوامر الشراء",
+   "product": "accounting"
+  },
+  {
+   "code": "reports.trial_balance.view",
+   "group": "reports",
+   "label": "عرض ميزان المراجعة",
+   "product": "accounting"
+  },
+  {
+   "code": "reports.financial.view",
+   "group": "reports",
+   "label": "القوائم المالية ولوحة المؤشرات",
+   "product": "accounting"
+  },
+  {
+   "code": "reports.cash.view",
+   "group": "reports",
+   "label": "تقرير النقدية اليومي",
+   "product": "accounting"
+  },
+  {
+   "code": "reports.aging.view",
+   "group": "reports",
+   "label": "تقارير أعمار الذمم",
+   "product": "accounting"
+  },
+  {
+   "code": "reports.profitability.view",
+   "group": "reports",
+   "label": "ربحية الأقسام",
+   "product": "accounting"
+  },
+  {
+   "code": "reports.tax.view",
+   "group": "reports",
+   "label": "الإقرار الضريبي",
+   "product": "accounting"
+  },
+  {
+   "code": "budgets.manage",
+   "group": "reports",
+   "label": "إعداد الموازنة التقديرية",
+   "product": "core"
+  },
+  {
+   "code": "settings.hotel.manage",
+   "group": "settings",
+   "label": "إدارة إعدادات الفندق",
+   "product": "core",
+   "locked": true
+  },
+  {
+   "code": "settings.users.manage",
+   "group": "settings",
+   "label": "إدارة المستخدمين والأدوار",
+   "product": "core",
+   "locked": true
+  },
+  {
+   "code": "settings.departments.manage",
+   "group": "settings",
+   "label": "إدارة الأقسام ومراكز التكلفة",
+   "product": "core"
+  },
+  {
+   "code": "settings.currencies.manage",
+   "group": "settings",
+   "label": "إدارة أسعار الصرف",
+   "product": "core"
+  },
+  {
+   "code": "settings.revenue.manage",
+   "group": "settings",
+   "label": "إدارة الضرائب ورموز الإيراد وطرق الدفع",
+   "product": "core"
+  },
+  {
+   "code": "vendors.view",
+   "group": "vendors",
+   "label": "عرض الموردين",
+   "product": "accounting"
+  },
+  {
+   "code": "vendors.manage",
+   "group": "vendors",
+   "label": "إدارة الموردين",
+   "product": "accounting"
+  }
+ ]
+}
