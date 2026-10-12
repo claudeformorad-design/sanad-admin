@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronDown, Lock, Search, ShieldCheck, LayoutGrid, Undo2 } from "lucide-react";
 import { saveControlAction } from "@/app/actions";
-import { PERMISSIONS, PERMISSION_GROUPS, TREE, type CatalogNode, type CatalogPermission } from "@/lib/catalog";
+import type { Catalog, CatalogNode, CatalogPermission } from "@/lib/catalog";
 import { META } from "@/components/sections-picker";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,10 @@ type Props = {
   sections: string[];
   blocked: string[];
   blockedPermissions: string[];
+  /** فهرس نسخة الفندق (أو الاحتياطي قبل أول تواصل) */
+  catalog: Catalog;
+  /** هل الفهرس من نسخة الفندق نفسها */
+  fromHotel: boolean;
 };
 
 const norm = (s: string) => s.replace(/[ً-ْـ]/g, "").replace(/[أإآ]/g, "ا").replace(/ة/g, "ه").replace(/ى/g, "ي").toLowerCase();
@@ -32,7 +36,7 @@ const sameSet = (a: Set<string>, b: readonly string[]) => a.size === b.length &&
  * التحكم الدقيق في نظام الفندق: الأقسام المشتراة، وكل صفحة وخانة وزر داخلها، وصلاحيات الموظفين.
  * ما يُوقف هنا يُطفأ في نظام الفندق خلال نصف دقيقة، ولا يستطيع مدير الفندق تشغيله من عنده.
  */
-export function SystemControl({ hotelId, sections: initialSections, blocked: initialBlocked, blockedPermissions: initialPerms }: Props) {
+export function SystemControl({ hotelId, sections: initialSections, blocked: initialBlocked, blockedPermissions: initialPerms, catalog, fromHotel }: Props) {
   const router = useRouter();
   const [tab, setTab] = useState<"sections" | "permissions">("sections");
   const [sections, setSections] = useState(() => new Set(initialSections));
@@ -68,6 +72,9 @@ export function SystemControl({ hotelId, sections: initialSections, blocked: ini
             اختر الأقسام المشتراة، وأوقف أي صفحة أو خانة أو زر داخلها، وأي صلاحية لكل الموظفين حتى المدير.
             ما توقفه هنا يظهر عند الفندق مقفلًا ولا يشغّله أحد غيرك.
           </p>
+          <p className="text-[13.5px] text-slate-500" data-testid="catalog-source">
+            {fromHotel ? "القائمة من نسخة نظام الفندق نفسها، وتتحدث تلقائيًا مع كل تحديث للنظام." : "القائمة العامة، وتتحدث من نسخة نظام الفندق نفسها بعد أول تواصل له."}
+          </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <div role="tablist" className="inline-flex rounded-lg bg-subtle p-1">
@@ -93,9 +100,9 @@ export function SystemControl({ hotelId, sections: initialSections, blocked: ini
 
       <div className="p-4 sm:p-6">
         {tab === "sections" ? (
-          <SectionsTab {...{ sections, setSections, blocked, setBlocked, open, toggleOpen, q }} />
+          <SectionsTab tree={catalog.tree} {...{ sections, setSections, blocked, setBlocked, open, toggleOpen, q }} />
         ) : (
-          <PermissionsTab {...{ perms, setPerms, q }} />
+          <PermissionsTab groups0={catalog.permission_groups} all={catalog.permissions} {...{ perms, setPerms, q }} />
         )}
       </div>
 
@@ -110,7 +117,8 @@ export function SystemControl({ hotelId, sections: initialSections, blocked: ini
   );
 }
 
-function SectionsTab({ sections, setSections, blocked, setBlocked, open, toggleOpen, q }: {
+function SectionsTab({ tree, sections, setSections, blocked, setBlocked, open, toggleOpen, q }: {
+  tree: CatalogNode[];
   sections: Set<string>; setSections: (s: Set<string>) => void;
   blocked: Set<string>; setBlocked: (s: Set<string>) => void;
   open: Set<string>; toggleOpen: (k: string) => void; q: string;
@@ -133,13 +141,13 @@ function SectionsTab({ sections, setSections, blocked, setBlocked, open, toggleO
     setBlocked(next);
   };
 
-  const visible = TREE.filter((s) => hit(q, s.label, s.hint) || descendants(s).some((d) => hit(q, d.label, d.hint)));
+  const visible = tree.filter((s) => hit(q, s.label, s.hint) || descendants(s).some((d) => hit(q, d.label, d.hint)));
   const onlyCore = [...sections].filter((x) => CORE.has(x));
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap gap-2 pb-1">
         <Button type="button" variant="outline" size="sm" onClick={() => setSections(new Set(onlyCore.length ? onlyCore : ["pms", "accounting"]))}>الأساسية فقط</Button>
-        <Button type="button" variant="outline" size="sm" onClick={() => setSections(new Set(TREE.map((s) => s.key).filter((k) => k !== ALWAYS)))}>كل الأقسام</Button>
+        <Button type="button" variant="outline" size="sm" onClick={() => setSections(new Set(tree.map((s) => s.key).filter((k) => k !== ALWAYS)))}>كل الأقسام</Button>
         <Button type="button" variant="ghost" size="sm" onClick={() => setBlocked(new Set())} disabled={!blocked.size}>تشغيل كل التفاصيل</Button>
       </div>
       {visible.length === 0 && <p className="py-10 text-center text-[15.5px] text-slate-500">لا نتائج للبحث</p>}
@@ -226,10 +234,12 @@ function NodeRow({ node, depth, parentOff, blocked, onChange, q }: {
   );
 }
 
-function PermissionsTab({ perms, setPerms, q }: { perms: Set<string>; setPerms: (s: Set<string>) => void; q: string }) {
-  const groups = PERMISSION_GROUPS.map((g) => ({
+function PermissionsTab({ groups0, all, perms, setPerms, q }: {
+  groups0: Catalog["permission_groups"]; all: CatalogPermission[]; perms: Set<string>; setPerms: (s: Set<string>) => void; q: string;
+}) {
+  const groups = groups0.map((g) => ({
     ...g,
-    items: PERMISSIONS.filter((p) => p.group === g.key && (hit(q, p.label, p.code) || hit(q, g.label))),
+    items: all.filter((p) => p.group === g.key && (hit(q, p.label, p.code) || hit(q, g.label))),
   })).filter((g) => g.items.length);
   const set = (codes: CatalogPermission[], on: boolean) => {
     const n = new Set(perms);

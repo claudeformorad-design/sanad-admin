@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 import { ExternalLink } from "lucide-react";
 import { requireAdmin } from "@/lib/auth";
-import { getHotel } from "@/lib/data";
+import { catalogFor, getHotel } from "@/lib/data";
+import { STATIC_CATALOG } from "@/lib/catalog";
 import { ago, day, hotelState } from "@/lib/format";
 import { deleteHotelAction, resetActivationAction, saveHotelAction, setStatusAction } from "@/app/actions";
 import { ActionForm, ConfirmButton } from "@/components/forms";
@@ -24,6 +25,7 @@ export default async function HotelPage({ params, searchParams }: { params: Prom
   const h = await getHotel(id);
   if (!h) notFound();
   const state = hotelState(h);
+  const hotelCatalog = await catalogFor(h);
   return (
     <Shell active="/hotels">
       <PageTitle back={{ href: "/hotels", label: "الفنادق" }} title={<span className="flex flex-wrap items-center gap-3">{h.name}<StatePill state={state} /></span>}>
@@ -76,7 +78,8 @@ export default async function HotelPage({ params, searchParams }: { params: Prom
           )}
         </section>
 
-        <SystemControl hotelId={h.id} sections={h.sections} blocked={h.blocked ?? []} blockedPermissions={h.blocked_permissions ?? []} />
+        <SystemControl hotelId={h.id} sections={h.sections} blocked={h.blocked ?? []} blockedPermissions={h.blocked_permissions ?? []}
+          catalog={hotelCatalog ?? STATIC_CATALOG} fromHotel={!!hotelCatalog} />
 
         <ActionForm action={saveHotelAction} submit="حفظ البيانات" className="surface space-y-4 p-6">
           <input type="hidden" name="id" value={h.id} />

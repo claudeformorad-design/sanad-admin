@@ -52,5 +52,20 @@ describe("forgotten password", () => {
     // نفس الكود لا يعمل مرة ثانية
     expect(await resetPassword("RCVR-7K2M-9QXA", "Other-pass-890!")).toBe("used");
     expect(await login("New-pass-4567!")).toBe("ok");
+    // كود جديد يضعه صاحب النظام يعمل بعد استخدام القديم
+    process.env.ADMIN_RESET_CODE = "EC2W-3SXF-E4JH";
+    expect(await resetPassword("EC2W-3SXF-E4JH", "Third-pass-321!")).toBe("ok");
+    expect(await login("Third-pass-321!")).toBe("ok");
+  });
+
+  it("after 8 wrong tries both login and recovery lock, and say how long is left", async () => {
+    const { login, checkResetCode, lockMinutesLeft } = await import("@/lib/auth");
+    expect(await lockMinutesLeft()).toBe(0);
+    for (let i = 0; i < 8; i++) expect(await login("wrong-pass-0!")).toBe("bad");
+    expect(await login("Third-pass-321!")).toBe("locked");
+    expect(await checkResetCode("EC2W-3SXF-E4JH")).toBe("locked");
+    const left = await lockMinutesLeft();
+    expect(left).toBeGreaterThanOrEqual(14);
+    expect(left).toBeLessThanOrEqual(15);
   });
 });

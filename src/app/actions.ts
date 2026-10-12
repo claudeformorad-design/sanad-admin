@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { changePassword, checkResetCode, checkSetupCode, isSetUp, login, logout, requireAdmin, resetPassword, setupCodeConfigured, setupPassword } from "@/lib/auth";
+import { changePassword, checkResetCode, checkSetupCode, isSetUp, lockMinutesLeft, login, logout, requireAdmin, resetPassword, setupCodeConfigured, setupPassword } from "@/lib/auth";
 import { createHotel, createNotice, deleteHotel, deleteNotice, resetActivation, updateHotel } from "@/lib/data";
 
 export type FormState = { error?: string; ok?: string } | null;
@@ -30,29 +30,35 @@ export async function setupAction(_: FormState, f: FormData): Promise<FormState>
 
 const RESET_ERRORS: Record<string, string> = {
   bad: "كود الاستعادة غير صحيح",
-  used: "هذا الكود استُخدم من قبل. اطلب كودًا جديدًا",
+  used: "هذا الكود استُخدم من قبل. ضع كودًا جديدًا في المتغير ADMIN_RESET_CODE على Netlify ثم أعد نشر اللوحة",
   locked: "محاولات كثيرة خاطئة، حاول بعد ربع ساعة",
   off: "الاستعادة غير مفعّلة: كود الاستعادة غير مضبوط في إعدادات الموقع على Netlify (المتغير ADMIN_RESET_CODE)",
   weak: "كلمة المرور لازم 10 أحرف أو أكثر، وفيها حرف ورقم ورمز",
 };
 
+/** رسالة القفل بعد المحاولات الخاطئة مع الوقت الباقي بالدقائق */
+async function lockedMessage(): Promise<string> {
+  const m = await lockMinutesLeft();
+  return `محاولات كثيرة خاطئة، فأُقفل الدخول مؤقتًا. حاول بعد ${m <= 1 ? "دقيقة" : m === 2 ? "دقيقتين" : m <= 10 ? `${m} دقائق` : `${m} دقيقة`}`;
+}
+
 /** فحص كود الاستعادة قبل خطوة كلمة المرور (لا يستهلكه) */
 export async function checkResetCodeAction(code: string): Promise<{ ok: true } | { ok: false; error: string }> {
   if (!(await isSetUp())) return { ok: false, error: "اللوحة لم تُعدّ بعد، ابدأ من الإعداد الأول" };
   const r = await checkResetCode(String(code ?? ""));
-  return r === "ok" ? { ok: true } : { ok: false, error: RESET_ERRORS[r]! };
+  return r === "ok" ? { ok: true } : { ok: false, error: r === "locked" ? await lockedMessage() : RESET_ERRORS[r]! };
 }
 
 export async function resetAction(_: FormState, f: FormData): Promise<FormState> {
   if (str(f, "password") !== str(f, "confirm")) return { error: "كلمتا المرور غير متطابقتين" };
   const r = await resetPassword(str(f, "code"), str(f, "password"));
-  if (r !== "ok") return { error: RESET_ERRORS[r] };
+  if (r !== "ok") return { error: r === "locked" ? await lockedMessage() : RESET_ERRORS[r] };
   redirect("/");
 }
 
 export async function loginAction(_: FormState, f: FormData): Promise<FormState> {
   const r = await login(str(f, "password"));
-  if (r === "locked") return { error: "محاولات كثيرة خاطئة، حاول بعد ربع ساعة" };
+  if (r === "locked") return { error: await lockedMessage() };
   if (r === "bad") return { error: "كلمة المرور غير صحيحة" };
   redirect("/");
 }

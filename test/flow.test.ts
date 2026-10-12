@@ -84,8 +84,8 @@ describe("panel flow", () => {
   });
 
   it("carries the owner's fine-grained blocks in the signed license, dropping unknown and core keys", async () => {
-    const { TREE } = await import("@/lib/catalog");
-    expect(TREE.length).toBeGreaterThan(5);
+    const { STATIC_CATALOG } = await import("@/lib/catalog");
+    expect(STATIC_CATALOG.tree.length).toBeGreaterThan(5);
     const h = await createHotel({ name: "فندق الدقة", contact: "", sections: ["pms", "accounting"], notes: "" });
     await updateHotel(h.id, {
       blocked: ["folio.void", "pms.cashier", "accounting.journal", "nope", "pms"],
@@ -99,5 +99,39 @@ describe("panel flow", () => {
     const { body, sig, payload } = decode((await res.json()).license);
     expect(verifyWith(publicKey, body, sig)).toBe(true);
     expect(payload).toMatchObject({ blocked: ["folio.void", "pms.cashier"], blocked_permissions: ["invoices.write_off"] });
+  });
+
+  it("learns each hotel's own catalog on check-in, so new pages in its version can be blocked", async () => {
+    const { STATIC_CATALOG, catalogHash } = await import("@/lib/catalog");
+    const { catalogFor } = await import("@/lib/data");
+    const h = await createHotel({ name: "فندق النسخة الجديدة", contact: "", sections: ["pms", "accounting"], notes: "" });
+    const act = await (await activateRoute.POST(post("/api/v1/activate", { code: h.code, mode: "cloud", url: "https://new.example", version: "2.0" }))).json();
+    // نسخة فيها صفحة جديدة ليست في فهرس اللوحة الاحتياطي
+    const catalog = structuredClone(STATIC_CATALOG);
+    catalog.tree[0]!.children!.push({ key: "pms.new_page", kind: "part", label: "صفحة جديدة" });
+    const hash = catalogHash(catalog);
+    // البصمة وحدها: اللوحة لا تعرفها فتطلب الفهرس
+    let r = await checkinRoute.POST(signed(act.secret, act.instance_id, { version: "2.0", catalog_hash: hash }));
+    expect((await r.json()).need_catalog).toBe(true);
+    // فهرس لا يطابق بصمته يُرفض ولا يُحفظ
+    r = await checkinRoute.POST(signed(act.secret, act.instance_id, { version: "2.0", catalog_hash: hash, catalog: STATIC_CATALOG }));
+    expect(r.status).toBe(200);
+    expect(await catalogFor((await getHotel(h.id))!)).toBeNull();
+    // الفهرس مع بصمته الصحيحة يُحفظ ويُربط بالفندق، ولا يُطلب بعدها
+    r = await checkinRoute.POST(signed(act.secret, act.instance_id, { version: "2.0", catalog_hash: hash, catalog }));
+    expect((await r.json()).need_catalog).toBeUndefined();
+    const saved = (await getHotel(h.id))!;
+    expect(saved.instance?.catalog_hash).toBe(hash);
+    expect((await catalogFor(saved))?.tree[0]?.children?.some((c) => c.key === "pms.new_page")).toBe(true);
+    r = await checkinRoute.POST(signed(act.secret, act.instance_id, { version: "2.0", catalog_hash: hash }));
+    expect((await r.json()).need_catalog).toBeUndefined();
+    // الصفحة الجديدة تُوقف لهذا الفندق، وتصل في ترخيصه
+    await updateHotel(h.id, { blocked: ["pms.new_page"] });
+    expect((await getHotel(h.id))!.blocked).toEqual(["pms.new_page"]);
+    const lic = decode((await (await checkinRoute.POST(signed(act.secret, act.instance_id, { version: "2.0" }))).json()).license);
+    expect(lic.payload.blocked).toEqual(["pms.new_page"]);
+    // تواصل كبير جدًا يُرفض
+    r = await checkinRoute.POST(signed(act.secret, act.instance_id, { version: "2.0", catalog_hash: hash, catalog: { junk: "x".repeat(600_000) } }));
+    expect(r.status).toBe(413);
   });
 });

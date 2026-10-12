@@ -1,9 +1,9 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
 import { activationCode, random } from "./crypto";
-import { readJson, update } from "./store";
+import { readJson, update, writeJson } from "./store";
 import { SECTION_KEYS } from "./sections";
-import { cleanBlocked, cleanBlockedPermissions } from "./catalog";
+import { type Catalog, cleanBlocked, cleanBlockedPermissions } from "./catalog";
 
 /** فندق مباع: أقسامه وحالته وكود ربطه، والنظام المربوط به (نسخة على الموقع أو على جهاز) */
 export type Hotel = {
@@ -31,6 +31,8 @@ export type Instance = {
   machine: string | null;
   url: string | null;
   version: string | null;
+  /** بصمة فهرس نسخة الفندق (ما يمكن إيقافه فيها)، والفهرس نفسه محفوظ باسمها */
+  catalog_hash?: string | null;
   activated_at: string;
   last_seen: string;
 };
@@ -67,15 +69,26 @@ export async function createHotel(input: { name: string; contact: string; sectio
   return hotel;
 }
 
+// ---------------------------------------------------------------- فهرس نسخة كل فندق
+const catalogKey = (hash: string) => `catalog-${hash}`;
+export const hasCatalog = async (hash: string) => (await readJson<Catalog | null>(catalogKey(hash), null)) !== null;
+export const saveCatalog = (hash: string, catalog: Catalog) => writeJson(catalogKey(hash), catalog);
+/** فهرس نسخة الفندق إن وصل من نظامه، وإلا null فيُستخدم الاحتياطي */
+export async function catalogFor(hotel: Pick<Hotel, "instance">): Promise<Catalog | null> {
+  const hash = hotel.instance?.catalog_hash;
+  return hash ? readJson<Catalog | null>(catalogKey(hash), null) : null;
+}
+
 export async function updateHotel(id: string, patch: Partial<Pick<Hotel, "name" | "contact" | "sections" | "blocked" | "blocked_permissions" | "status" | "notes">>): Promise<Hotel | null> {
   let out: Hotel | null = null;
+  const catalog = patch.blocked || patch.blocked_permissions ? await catalogFor((await getHotel(id)) ?? { instance: null }) : null;
   await update<Hotel[]>(HOTELS, [], (all) => all.map((h) => {
     if (h.id !== id) return h;
     out = {
       ...h, ...patch,
       ...(patch.sections ? { sections: cleanSections(patch.sections) } : {}),
-      ...(patch.blocked ? { blocked: cleanBlocked(patch.blocked) } : {}),
-      ...(patch.blocked_permissions ? { blocked_permissions: cleanBlockedPermissions(patch.blocked_permissions) } : {}),
+      ...(patch.blocked ? { blocked: cleanBlocked(patch.blocked, catalog) } : {}),
+      ...(patch.blocked_permissions ? { blocked_permissions: cleanBlockedPermissions(patch.blocked_permissions, catalog) } : {}),
       updated_at: new Date().toISOString(),
     };
     return out;
@@ -127,12 +140,15 @@ export async function findByInstance(instanceId: string): Promise<Hotel | null> 
   return (await listHotels()).find((h) => h.instance?.id === instanceId) ?? null;
 }
 
-export async function touchInstance(hotelId: string, info: { version: string | null; url: string | null }): Promise<void> {
+export async function touchInstance(hotelId: string, info: { version: string | null; url: string | null; catalog_hash?: string | null }): Promise<void> {
   // النظام يتواصل كل نصف دقيقة أثناء استخدامه: "آخر ظهور" يُكتب مرة في الدقيقة على الأكثر، توفيرًا للمخزن
   const cur = (await listHotels()).find((h) => h.id === hotelId)?.instance;
-  if (cur && Date.now() - Date.parse(cur.last_seen) < 60_000 && (info.version ?? cur.version) === cur.version && (info.url ?? cur.url) === cur.url) return;
+  const hash = info.catalog_hash ?? cur?.catalog_hash ?? null;
+  if (cur && Date.now() - Date.parse(cur.last_seen) < 60_000 && (info.version ?? cur.version) === cur.version && (info.url ?? cur.url) === cur.url
+    && hash === (cur.catalog_hash ?? null)) return;
   await update<Hotel[]>(HOTELS, [], (all) => all.map((h) => (h.id === hotelId && h.instance
-    ? { ...h, instance: { ...h.instance, last_seen: new Date().toISOString(), version: info.version ?? h.instance.version, url: info.url ?? h.instance.url } }
+    ? { ...h, instance: { ...h.instance, last_seen: new Date().toISOString(), version: info.version ?? h.instance.version, url: info.url ?? h.instance.url,
+        catalog_hash: info.catalog_hash ?? h.instance.catalog_hash ?? null } }
     : h)));
 }
 

@@ -60,6 +60,13 @@ export const resetCodeConfigured = () => normalizeCode(process.env.ADMIN_RESET_C
 
 const locked = (a: Admin) => !!a.failed_since && Date.now() - Date.parse(a.failed_since) < 15 * 60_000 && a.failures >= 8;
 
+/** الدقائق الباقية على فتح الدخول بعد المحاولات الخاطئة (1 على الأقل وهو مقفل، و0 إن لم يكن مقفلًا) */
+export async function lockMinutesLeft(): Promise<number> {
+  const a = await admin();
+  if (!locked(a)) return 0;
+  return Math.max(1, Math.ceil((Date.parse(a.failed_since!) + 15 * 60_000 - Date.now()) / 60_000));
+}
+
 async function countFailure(): Promise<void> {
   await update<Admin>("admin", EMPTY, (v) => {
     const fresh = !v.failed_since || Date.now() - Date.parse(v.failed_since) >= 15 * 60_000;
